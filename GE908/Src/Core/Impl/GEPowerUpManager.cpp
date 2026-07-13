@@ -65,23 +65,25 @@ void GEPowerUpManager::update(float deltaTime, GEContext& ctx) {
 
     GEPlayer& player = static_cast<GEPlayer&>(ctx.playerProvider());
 
-    _powerUps.forEachActive([&](GEPowerUp* p, unsigned int) {
-        if (!p) return;
+    for (unsigned int i = 0; i < _powerUps.size(); ++i) {
+        GEPowerUp* p = _powerUps[i];
+        if (!p || !p->isAlive()) continue;
         GEPowerUpLifetimeSystem::update(p->powerUpComponent(), deltaTime);
 
         if (p->isAlive() && p->collide(player.collisionBody())) {
             player.applyPowerUp(p->getType());
             p->deactivate();
         }
-        });
+    }
 
 }
 
 void GEPowerUpManager::draw(Window& window, const GECamera& camera) {
-    _powerUps.forEachActive([&](GEPowerUp* p, unsigned int) {
+    for (unsigned int i = 0; i < _powerUps.size(); ++i) {
+        GEPowerUp* p = _powerUps[i];
         if (p && p->isAlive())
             p->draw(window, camera);
-        });
+    }
 }
 
 void GEPowerUpManager::onEnemyDefeated(const GEPoint& position) {
@@ -91,11 +93,12 @@ void GEPowerUpManager::onEnemyDefeated(const GEPoint& position) {
 GEPowerUpManagerState GEPowerUpManager::snapshotState() const {
     GEPowerUpManagerState state;
     state.spawnTimer = _spawnTimer;
-    _powerUps.forEachActive([&](GEPowerUp* powerUp, unsigned int) {
-        if (!powerUp || !powerUp->isAlive()) return;
+    for (unsigned int i = 0; i < _powerUps.size(); ++i) {
+        GEPowerUp* powerUp = _powerUps[i];
+        if (!powerUp || !powerUp->isAlive()) continue;
         GEPowerUpState powerUpState = powerUp->snapshotState();
         state.addPowerUpState(powerUpState);
-        });
+    }
     return state;
 }
 
@@ -104,11 +107,11 @@ void GEPowerUpManager::applyState(const GEPowerUpManagerState& state) {
     _powerUps.destroyAll();
     _powerUps.fillNull(16);
 
-    state.forEachPowerUp([&](const GEPowerUpState& powerUpState) {
-        if (!powerUpState.isActiveElement()) return;
+    for (unsigned int i = 0; i < state.powerUps.size(); ++i) {
+        GEPowerUpState* powerUpState = state.powerUps[i];
+        if (!powerUpState || !powerUpState->isActiveElement()) continue;
         GEPowerUp* powerUp = new GEPowerUp();
-        powerUp->applyState(powerUpState);
+        powerUp->applyState(*powerUpState);
         _powerUps.add(powerUp);
-        }
-    );
+    }
 }

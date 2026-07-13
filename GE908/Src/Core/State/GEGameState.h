@@ -108,13 +108,6 @@ public:
     void clearEnemyStates();
     std::size_t enemyCount() const { return enemyStates.countActive(); }
 
-    template <typename Func>
-    void forEachEnemyState(Func&& func) const {
-        enemyStates.forEachActive([&](GEEnemyState* state, unsigned int) {
-            if (!state || !state->isActiveElement()) return;
-            func(*state);
-            });
-    }
 };
 
 class GEPowerUpManagerState {
@@ -136,13 +129,6 @@ public:
     void clearPowerUps();
     std::size_t powerUpCount() const { return powerUps.countActive(); }
 
-    template <typename Func>
-    void forEachPowerUp(Func&& func) const {
-        powerUps.forEachActive([&](GEPowerUpState* state, unsigned int) {
-            if (!state || !state->isActiveElement()) return;
-            func(*state);
-            });
-    }
 };
 
 class GEProjectileManagerState {
@@ -163,13 +149,6 @@ public:
     void clearProjectiles();
     std::size_t projectileCount() const { return projectiles.countActive(); }
 
-    template <typename Func>
-    void forEachProjectile(Func&& func) const {
-        projectiles.forEachActive([&](GEProjectileState* state, unsigned int) {
-            if (!state || !state->isActiveElement()) return;
-            func(*state);
-            });
-    }
 };
 
 inline GEEnemyManagerState::GEEnemyManagerState() = default;
@@ -187,12 +166,13 @@ inline void GEEnemyManagerState::copyFrom(const GEEnemyManagerState& other) {
 
     clearEnemyStates();
     enemyStates.reserve(other.enemyStates.capacity());
-    other.enemyStates.forEachActive([&](GEEnemyState* state, unsigned int) {
-        if (!state || !state->isActiveElement()) return;
+    for (unsigned int i = 0; i < other.enemyStates.size(); ++i) {
+        GEEnemyState* state = other.enemyStates[i];
+        if (!state || !state->isActiveElement()) continue;
         GEEnemyState* copy = new GEEnemyState(*state);
         copy->activate();
         enemyStates.add(copy);
-        });
+    }
 }
 
 inline void GEEnemyManagerState::moveFrom(GEEnemyManagerState&& other) noexcept {
@@ -248,12 +228,13 @@ inline void GEPowerUpManagerState::copyFrom(const GEPowerUpManagerState& other) 
     spawnTimer = other.spawnTimer;
     clearPowerUps();
     powerUps.reserve(other.powerUps.capacity());
-    other.powerUps.forEachActive([&](GEPowerUpState* state, unsigned int) {
-        if (!state || !state->isActiveElement()) return;
+    for (unsigned int i = 0; i < other.powerUps.size(); ++i) {
+        GEPowerUpState* state = other.powerUps[i];
+        if (!state || !state->isActiveElement()) continue;
         GEPowerUpState* copy = new GEPowerUpState(*state);
         copy->activate();
         powerUps.add(copy);
-        });
+    }
 }
 
 inline void GEPowerUpManagerState::moveFrom(GEPowerUpManagerState&& other) noexcept {
@@ -302,12 +283,13 @@ inline GEProjectileManagerState::~GEProjectileManagerState() {
 inline void GEProjectileManagerState::copyFrom(const GEProjectileManagerState& other) {
     clearProjectiles();
     projectiles.reserve(other.projectiles.capacity());
-    other.projectiles.forEachActive([&](GEProjectileState* state, unsigned int) {
-        if (!state || !state->isActiveElement()) return;
+    for (unsigned int i = 0; i < other.projectiles.size(); ++i) {
+        GEProjectileState* state = other.projectiles[i];
+        if (!state || !state->isActiveElement()) continue;
         GEProjectileState* copy = new GEProjectileState(*state);
         copy->activate();
         projectiles.add(copy);
-        });
+    }
 }
 
 inline void GEProjectileManagerState::moveFrom(GEProjectileManagerState&& other) noexcept {

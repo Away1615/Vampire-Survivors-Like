@@ -93,10 +93,11 @@ bool GEEnemyManager::spawnEnemyOutsideCamera(PlayerProvider& player) {
 }
 
 void GEEnemyManager::draw(Window& window, const GECamera& camera) {
-    _enemies.forEachActive([&](GEEnemy* enemy, unsigned int) {
+    for (unsigned int i = 0; i < _enemies.size(); ++i) {
+        GEEnemy* enemy = _enemies[i];
         if (enemy && enemy->isAlive())
             enemy->draw(window, camera);
-        });
+    }
 }
 
 void GEEnemyManager::update(float deltaTime, GEContext& ctx) {
@@ -125,8 +126,9 @@ void GEEnemyManager::update(float deltaTime, GEContext& ctx) {
 
     GEPlayer& player = static_cast<GEPlayer&>(ctx.playerProvider());
 
-    _enemies.forEachActive([&](GEEnemy* enemy, unsigned int) {
-        if (!enemy) return;
+    for (unsigned int i = 0; i < _enemies.size(); ++i) {
+        GEEnemy* enemy = _enemies[i];
+        if (!enemy || !enemy->isAlive()) continue;
 
         enemy->update(
             deltaTime,
@@ -151,7 +153,7 @@ void GEEnemyManager::update(float deltaTime, GEContext& ctx) {
             registerEnemyKill(enemy->getType());
             if (_activeEnemyCount > 0) --_activeEnemyCount;
         }
-        });
+    }
 
     if (_mapData) {
         const float playerX = player.getCenterX();
@@ -191,11 +193,12 @@ GEEnemyManagerState GEEnemyManager::snapshotState() const {
     for (int i = 0; i < Enemy::ENEMY_TYPE_COUNT; ++i)
         state.killCounts[static_cast<size_t>(i)] = _killCounts[i];
 
-    _enemies.forEachActive([&](GEEnemy* enemy, unsigned int) {
-        if (!enemy || !enemy->isAlive()) return;
+    for (unsigned int i = 0; i < _enemies.size(); ++i) {
+        GEEnemy* enemy = _enemies[i];
+        if (!enemy || !enemy->isAlive()) continue;
         GEEnemyState enemyState = enemy->snapshotState();
         state.addEnemyState(enemyState);
-        });
+    }
     return state;
 }
 
@@ -216,16 +219,17 @@ void GEEnemyManager::applyState(const GEEnemyManagerState& state) {
     const int mapW = _mapData ? _mapData->getActiveChunkPixelWidth() : 0;
     const int mapH = _mapData ? _mapData->getActiveChunkPixelHeight() : 0;
 
-    state.forEachEnemyState([&](const GEEnemyState& enemyState) {
-        if (enemyState.hp <= 0) return;
-        GEEnemy* enemy = new GEEnemy(enemyState.type);
+    for (unsigned int i = 0; i < state.enemyStates.size(); ++i) {
+        GEEnemyState* enemyState = state.enemyStates[i];
+        if (!enemyState || !enemyState->isActiveElement() || enemyState->hp <= 0) continue;
+        GEEnemy* enemy = new GEEnemy(enemyState->type);
         if (infinite)
             enemy->setMapBounds(-1, -1);
         else
             enemy->setMapBounds(mapW, mapH);
-        enemy->applyState(enemyState);
+        enemy->applyState(*enemyState);
         _enemies.add(enemy);
-        });
+    }
 
     _activeEnemyCount = _enemies.countActive();
 }

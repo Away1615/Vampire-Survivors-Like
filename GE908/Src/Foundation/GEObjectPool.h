@@ -143,13 +143,6 @@ public:
         }
     }
 
-    template <typename Func>
-    void forEachActive(Func&& func) const {
-        for (unsigned int i = 0; i < _size; ++i)
-            if (_data[i] && _data[i]->isActiveElement())
-                func(_data[i], i);
-    }
-
     void fillNull(unsigned int count) {
         resize(count);
         for (unsigned int i = 0; i < count; ++i)

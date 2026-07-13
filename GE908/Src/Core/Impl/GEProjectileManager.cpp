@@ -49,8 +49,9 @@ void GEProjectileManager::update(float deltaTime, GEContext& ctx) {
     GEPlayer& player = static_cast<GEPlayer&>(ctx.playerProvider());
     const int enemyCount = ctx.enemyProvider().getEnemyCount();
 
-    _projectiles.forEachActive([&](GEProjectile* projectile, unsigned int) {
-        if (!projectile->isActiveElement()) return;
+    for (unsigned int i = 0; i < _projectiles.size(); ++i) {
+        GEProjectile* projectile = _projectiles[i];
+        if (!projectile || !projectile->isActiveElement()) continue;
 
         GEProjectileMovementSystem::update(
             projectile->transformComponent(),
@@ -80,23 +81,25 @@ void GEProjectileManager::update(float deltaTime, GEContext& ctx) {
                 projectile->deactivate();
             }
         }
-        });
+    }
 
 }
 
 void GEProjectileManager::draw(Window& window, const GECamera& camera) {
-    _projectiles.forEachActive([&](GEProjectile* projectile, unsigned int) {
+    for (unsigned int i = 0; i < _projectiles.size(); ++i) {
+        GEProjectile* projectile = _projectiles[i];
         if (projectile && projectile->isActiveElement())
             projectile->draw(window, camera);
-        });
+    }
 }
 
 GEProjectileManagerState GEProjectileManager::snapshotState() const {
     GEProjectileManagerState state;
-    _projectiles.forEachActive([&](GEProjectile* projectile, unsigned int) {
-        if (!projectile || !projectile->isActiveElement()) return;
+    for (unsigned int i = 0; i < _projectiles.size(); ++i) {
+        GEProjectile* projectile = _projectiles[i];
+        if (!projectile || !projectile->isActiveElement()) continue;
         state.addProjectileState(projectile->snapshotState());
-        });
+    }
     return state;
 }
 
@@ -104,10 +107,11 @@ void GEProjectileManager::applyState(const GEProjectileManagerState& state) {
     _projectiles.destroyAll();
     _projectiles.fillNull(Projectile::MAX_PROJECTILES);
 
-    state.forEachProjectile([&](const GEProjectileState& projectileState) {
-        if (!projectileState.isActiveElement()) return;
+    for (unsigned int i = 0; i < state.projectiles.size(); ++i) {
+        GEProjectileState* projectileState = state.projectiles[i];
+        if (!projectileState || !projectileState->isActiveElement()) continue;
         GEProjectile* projectile = new GEProjectile();
-        projectile->applyState(projectileState);
+        projectile->applyState(*projectileState);
         _projectiles.add(projectile);
-        });
+    }
 }
