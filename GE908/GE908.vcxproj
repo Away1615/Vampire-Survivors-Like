@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{b0f7a719-f687-4ea1-a5b9-b3a78d2c0e3c}</ProjectGuid>
+    <RootNamespace>GE908</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\Core\Entity\GEPowerUp.cpp" />
+    <ClCompile Include="Src\Core\Entity\GEProjectile.cpp" />
+    <ClCompile Include="Src\Core\Entity\GETile.h" />
+    <ClCompile Include="Src\Core\Map\GEMapData.cpp" />
+    <ClCompile Include="Src\Core\Save\GESaveRepository.cpp" />
+    <ClCompile Include="Src\Core\Save\GESaveSerializer.cpp" />
+    <ClCompile Include="Src\Core\Impl\GEPowerUpManager.cpp" />
+    <ClCompile Include="Src\Core\Entity\GECharacter.cpp" />
+    <ClCompile Include="Src\Core\Impl\GEProjectileManager.cpp" />
+    <ClCompile Include="Src\Core\Impl\GEEnemyManager.cpp" />
+    <ClCompile Include="Src\Core\Entity\GEEnemy.cpp" />
+    <ClCompile Include="Src\Core\Entity\GEPlayer.cpp" />
+    <ClCompile Include="Src\Core\Impl\GEMapsManager.cpp" />
+    <ClCompile Include="Src\Foundation\GECollisible.h" />
+    <ClCompile Include="Src\Foundation\GEConst.h" />
+    <ClCompile Include="Src\Foundation\GEDebug.h" />
+    <ClCompile Include="Src\Foundation\GEFrameTimer.h" />
+    <ClCompile Include="Src\Foundation\GEObjectPool.h" />
+    <ClCompile Include="Src\Foundation\GEUtility.h" />
+    <ClCompile Include="Src\GameManager.cpp" />
+    <ClCompile Include="Main.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\Core\Entity\GEPowerUp.h" />
+    <ClInclude Include="Src\Core\Entity\GEProjectile.h" />
+    <ClInclude Include="Src\Core\Impl\GEPowerUpManager.h" />
+    <ClInclude Include="Src\Core\Impl\GEProjectileManager.h" />
+    <ClInclude Include="Src\Core\Impl\GEEnemyManager.h" />
+    <ClInclude Include="Src\Core\Entity\GEEnemy.h" />
+    <ClInclude Include="Src\Core\Entity\GECharacter.h" />
+    <ClInclude Include="Src\Core\Entity\GEPlayer.h" />
+    <ClInclude Include="Src\Core\Impl\GEMapsManager.h" />
+    <ClInclude Include="Src\Core\State\GECodable.h" />
+    <ClInclude Include="Src\Core\State\GEGameState.h" />
+    <ClInclude Include="Src\Foundation\GEContext.h" />
+    <ClInclude Include="Src\Foundation\Component\GETransformComponent.h" />
+    <ClInclude Include="Src\Foundation\Component\GESpriteComponent.h" />
+    <ClInclude Include="Src\Foundation\Component\GEColliderComponent.h" />
+    <ClInclude Include="Src\Foundation\GECollisionQuery.h" />
+    <ClInclude Include="Src\Foundation\GEPath.h" />
+    <ClInclude Include="Src\Core\Component\GEProjectileComponent.h" />
+    <ClInclude Include="Src\Core\Component\GEPowerUpComponent.h" />
+    <ClInclude Include="Src\Core\Component\GEEnemyComponent.h" />
+    <ClInclude Include="Src\Core\Component\GEPlayerComponent.h" />
+    <ClInclude Include="Src\Core\System\GEProjectileMovementSystem.h" />
+    <ClInclude Include="Src\Core\System\GEPowerUpLifetimeSystem.h" />
+    <ClInclude Include="Src\Core\System\GEEnemyRangedAttackSystem.h" />
+    <ClInclude Include="Src\Core\System\GEPlayerCombatSystem.h" />
+    <ClInclude Include="Src\Core\Interface\GEProvider.h" />
+    <ClInclude Include="Src\Foundation\GEModel.h" />
+    <ClInclude Include="Src\Core\Map\GEMapData.h" />
+    <ClInclude Include="Src\Core\Map\MapChunk.h" />
+    <ClInclude Include="Src\Core\Save\GESaveRepository.h" />
+    <ClInclude Include="Src\Core\Save\GESaveSerializer.h" />
+    <ClInclude Include="Src\Core\Save\GESaveTypes.h" />
+    <ClInclude Include="Src\Foundation\GEFont.h" />
+    <ClInclude Include="Src\Foundation\GECamera.h" />
+    <ClInclude Include="Src\GameManager.h" />
+    <ClInclude Include="ThirdParty\GamesEngineeringBase.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Src\Assets\Fonts\100.png" />
+    <Image Include="Src\Assets\Fonts\101.png" />
+    <Image Include="Src\Assets\Fonts\102.png" />
+    <Image Include="Src\Assets\Fonts\103.png" />
+    <Image Include="Src\Assets\Fonts\104.png" />
+    <Image Include="Src\Assets\Fonts\105.png" />
+    <Image Include="Src\Assets\Fonts\106.png" />
+    <Image Include="Src\Assets\Fonts\107.png" />
+    <Image Include="Src\Assets\Fonts\108.png" />
+    <Image Include="Src\Assets\Fonts\109.png" />
+    <Image Include="Src\Assets\Fonts\110.png" />
+    <Image Include="Src\Assets\Fonts\111.png" />
+    <Image Include="Src\Assets\Fonts\112.png" />
+    <Image Include="Src\Assets\Fonts\113.png" />
+    <Image Include="Src\Assets\Fonts\114.png" />
+    <Image Include="Src\Assets\Fonts\115.png" />
+    <Image Include="Src\Assets\Fonts\116.png" />
+    <Image Include="Src\Assets\Fonts\117.png" />
+    <Image Include="Src\Assets\Fonts\118.png" />
+    <Image Include="Src\Assets\Fonts\119.png" />
+    <Image Include="Src\Assets\Fonts\120.png" />
+    <Image Include="Src\Assets\Fonts\121.png" />
+    <Image Include="Src\Assets\Fonts\122.png" />
+    <Image Include="Src\Assets\Fonts\123.png" />
+    <Image Include="Src\Assets\Fonts\124.png" />
+    <Image Include="Src\Assets\Fonts\125.png" />
+    <Image Include="Src\Assets\Fonts\126.png" />
+    <Image Include="Src\Assets\Fonts\32.png" />
+    <Image Include="Src\Assets\Fonts\33.png" />
+    <Image Include="Src\Assets\Fonts\34.png" />
+    <Image Include="Src\Assets\Fonts\35.png" />
+    <Image Include="Src\Assets\Fonts\36.png" />
+    <Image Include="Src\Assets\Fonts\37.png" />
+    <Image Include="Src\Assets\Fonts\38.png" />
+    <Image Include="Src\Assets\Fonts\39.png" />
+    <Image Include="Src\Assets\Fonts\40.png" />
+    <Image Include="Src\Assets\Fonts\41.png" />
+    <Image Include="Src\Assets\Fonts\42.png" />
+    <Image Include="Src\Assets\Fonts\43.png" />
+    <Image Include="Src\Assets\Fonts\44.png" />
+    <Image Include="Src\Assets\Fonts\45.png" />
+    <Image Include="Src\Assets\Fonts\46.png" />
+    <Image Include="Src\Assets\Fonts\47.png" />
+    <Image Include="Src\Assets\Fonts\48.png" />
+    <Image Include="Src\Assets\Fonts\49.png" />
+    <Image Include="Src\Assets\Fonts\50.png" />
+    <Image Include="Src\Assets\Fonts\51.png" />
+    <Image Include="Src\Assets\Fonts\52.png" />
+    <Image Include="Src\Assets\Fonts\53.png" />
+    <Image Include="Src\Assets\Fonts\54.png" />
+    <Image Include="Src\Assets\Fonts\55.png" />
+    <Image Include="Src\Assets\Fonts\56.png" />
+    <Image Include="Src\Assets\Fonts\57.png" />
+    <Image Include="Src\Assets\Fonts\58.png" />
+    <Image Include="Src\Assets\Fonts\59.png" />
+    <Image Include="Src\Assets\Fonts\60.png" />
+    <Image Include="Src\Assets\Fonts\61.png" />
+    <Image Include="Src\Assets\Fonts\62.png" />
+    <Image Include="Src\Assets\Fonts\63.png" />
+    <Image Include="Src\Assets\Fonts\64.png" />
+    <Image Include="Src\Assets\Fonts\65.png" />
+    <Image Include="Src\Assets\Fonts\66.png" />
+    <Image Include="Src\Assets\Fonts\67.png" />
+    <Image Include="Src\Assets\Fonts\68.png" />
+    <Image Include="Src\Assets\Fonts\69.png" />
+    <Image Include="Src\Assets\Fonts\70.png" />
+    <Image Include="Src\Assets\Fonts\71.png" />
+    <Image Include="Src\Assets\Fonts\72.png" />
+    <Image Include="Src\Assets\Fonts\73.png" />
+    <Image Include="Src\Assets\Fonts\74.png" />
+    <Image Include="Src\Assets\Fonts\75.png" />
+    <Image Include="Src\Assets\Fonts\76.png" />
+    <Image Include="Src\Assets\Fonts\77.png" />
+    <Image Include="Src\Assets\Fonts\78.png" />
+    <Image Include="Src\Assets\Fonts\79.png" />
+    <Image Include="Src\Assets\Fonts\80.png" />
+    <Image Include="Src\Assets\Fonts\81.png" />
+    <Image Include="Src\Assets\Fonts\82.png" />
+    <Image Include="Src\Assets\Fonts\83.png" />
+    <Image Include="Src\Assets\Fonts\84.png" />
+    <Image Include="Src\Assets\Fonts\85.png" />
+    <Image Include="Src\Assets\Fonts\86.png" />
+    <Image Include="Src\Assets\Fonts\87.png" />
+    <Image Include="Src\Assets\Fonts\88.png" />
+    <Image Include="Src\Assets\Fonts\89.png" />
+    <Image Include="Src\Assets\Fonts\90.png" />
+    <Image Include="Src\Assets\Fonts\91.png" />
+    <Image Include="Src\Assets\Fonts\92.png" />
+    <Image Include="Src\Assets\Fonts\93.png" />
+    <Image Include="Src\Assets\Fonts\94.png" />
+    <Image Include="Src\Assets\Fonts\95.png" />
+    <Image Include="Src\Assets\Fonts\96.png" />
+    <Image Include="Src\Assets\Fonts\97.png" />
+    <Image Include="Src\Assets\Fonts\98.png" />
+    <Image Include="Src\Assets\Fonts\99.png" />
+    <Image Include="Src\Assets\MapTiles\0.png" />
+    <Image Include="Src\Assets\MapTiles\1.png" />
+    <Image Include="Src\Assets\MapTiles\10.png" />
+    <Image Include="Src\Assets\MapTiles\11.png" />
+    <Image Include="Src\Assets\MapTiles\12.png" />
+    <Image Include="Src\Assets\MapTiles\13.png" />
+    <Image Include="Src\Assets\MapTiles\14.png" />
+    <Image Include="Src\Assets\MapTiles\15.png" />
+    <Image Include="Src\Assets\MapTiles\16.png" />
+    <Image Include="Src\Assets\MapTiles\17.png" />
+    <Image Include="Src\Assets\MapTiles\18.png" />
+    <Image Include="Src\Assets\MapTiles\19.png" />
+    <Image Include="Src\Assets\MapTiles\2.png" />
+    <Image Include="Src\Assets\MapTiles\20.png" />
+    <Image Include="Src\Assets\MapTiles\21.png" />
+    <Image Include="Src\Assets\MapTiles\22.png" />
+    <Image Include="Src\Assets\MapTiles\23.png" />
+    <Image Include="Src\Assets\MapTiles\24.png" />
+    <Image Include="Src\Assets\MapTiles\3.png" />
+    <Image Include="Src\Assets\MapTiles\4.png" />
+    <Image Include="Src\Assets\MapTiles\5.png" />
+    <Image Include="Src\Assets\MapTiles\6.png" />
+    <Image Include="Src\Assets\MapTiles\7.png" />
+    <Image Include="Src\Assets\MapTiles\8.png" />
+    <Image Include="Src\Assets\MapTiles\9.png" />
+    <Image Include="Src\Assets\Textures\aoe_target.png" />
+    <Image Include="Src\Assets\Textures\arrow.png" />
+    <Image Include="Src\Assets\Textures\attack_speed.png" />
+    <Image Include="Src\Assets\Textures\enemy_bullet.png" />
+    <Image Include="Src\Assets\Textures\enemy_fast.png" />
+    <Image Include="Src\Assets\Textures\enemy_heavy.png" />
+    <Image Include="Src\Assets\Textures\enemy_normal.png" />
+    <Image Include="Src\Assets\Textures\enemy_static.png" />
+    <Image Include="Src\Assets\Textures\heal.png" />
+    <Image Include="Src\Assets\Textures\player.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Src\Assets\Maps\tilt.txt" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
