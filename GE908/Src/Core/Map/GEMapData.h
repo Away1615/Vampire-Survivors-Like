@@ -41,7 +41,7 @@ public:
     int getTileWidth() const { return _tileWidth; }
     int getTileHeight() const { return _tileHeight; }
 
-    void setCameraOffset(int x, int y);
+    void setCameraOffset(float x, float y);
     float getCameraOffsetX() const { return _cameraOffsetX; }
     float getCameraOffsetY() const { return _cameraOffsetY; }
 

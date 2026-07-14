@@ -37,16 +37,16 @@ public:
         float targetY = playerY + (playerHeight / 2.0f) - (_height / 2.0f);
 
         if (_mapWidth > _width)
-            _x = clamp(targetX, 0, _mapWidth - _width);
+            _x = clamp(targetX, 0.0f, static_cast<float>(_mapWidth - _width));
         else if (_mapWidth > 0)
-            _x = (_mapWidth - _width) / 2;
+            _x = static_cast<float>(_mapWidth - _width) / 2.0f;
         else
             _x = targetX;
 
         if (_mapHeight > _height)
-            _y = clamp(targetY, 0, _mapHeight - _height);
+            _y = clamp(targetY, 0.0f, static_cast<float>(_mapHeight - _height));
         else if (_mapHeight > 0)
-            _y = (_mapHeight - _height) / 2;
+            _y = static_cast<float>(_mapHeight - _height) / 2.0f;
         else
             _y = targetY;
     }

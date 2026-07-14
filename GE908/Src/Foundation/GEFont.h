@@ -45,7 +45,7 @@ public:
 
     GESize draw(const std::string& text, GEPoint originPoint, const GEColor textColor, Window& window) const {
         if (!_isLoaded) return GESize(0, 0);
-        int cursorX = originPoint.x;
+        int cursorX = static_cast<int>(originPoint.x);
         int height = 0;
 
         int windowWidth = window.getWidth();
@@ -60,7 +60,7 @@ public:
             height = imageHeight;
 
             for (int dy = 0; dy < imageWidth; ++dy) {
-                int screenY = originPoint.y + dy;
+                int screenY = static_cast<int>(originPoint.y) + dy;
                 if (screenY < 0 || screenY >= windowHeight) continue;
                 for (int dx = 0; dx < imageHeight; ++dx) {
                     int screenX = cursorX + dx;

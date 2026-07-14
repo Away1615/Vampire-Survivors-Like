@@ -10,7 +10,7 @@
 
 class GEEnemy;
 
-class GEPlayer : public GECharacter, public PlayerProvider, public GECodable<GEPlayerState> {
+class GEPlayer : public GECharacter, public PlayerProvider {
 
 private:
 	GEMapData* _mapData = nullptr;
@@ -53,6 +53,8 @@ public:
 	void takeDamage(int value) override;
 
 	GECollisible& collisionBody() { return *this; }
+	bool canReceiveContactDamage() const override { return GECharacter::canReceiveContactDamage(); }
+	void startContactDamageCooldown() override { GECharacter::startContactDamageCooldown(); }
 
 	int getHP() const override { return _hp; }
 

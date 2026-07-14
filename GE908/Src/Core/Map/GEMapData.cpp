@@ -104,9 +104,9 @@ int GEMapData::sampleTileForWorld(int worldRow, int worldCol) const {
     return _baseChunk.getTileID(sourceRow, sourceColumn);
 }
 
-void GEMapData::setCameraOffset(int x, int y) {
-    _cameraOffsetX = static_cast<float>(x);
-    _cameraOffsetY = static_cast<float>(y);
+void GEMapData::setCameraOffset(float x, float y) {
+    _cameraOffsetX = x;
+    _cameraOffsetY = y;
 }
 
 void GEMapData::setWindowSize(int width, int height) {

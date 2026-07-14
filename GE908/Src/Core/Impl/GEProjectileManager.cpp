@@ -1,4 +1,6 @@
 #include "GEProjectileManager.h"
+#include "../GEContext.h"
+#include "../Entity/GEEnemy.h"
 #include "../System/GEProjectileMovementSystem.h"
 
 GEProjectileManager::GEProjectileManager() {
@@ -46,7 +48,7 @@ void GEProjectileManager::addProjectile(ProjectileOwner from,
 }
 
 void GEProjectileManager::update(float deltaTime, GEContext& ctx) {
-    GEPlayer& player = static_cast<GEPlayer&>(ctx.playerProvider());
+    PlayerProvider& player = ctx.playerProvider();
     const int enemyCount = ctx.enemyProvider().getEnemyCount();
 
     for (unsigned int i = 0; i < _projectiles.size(); ++i) {

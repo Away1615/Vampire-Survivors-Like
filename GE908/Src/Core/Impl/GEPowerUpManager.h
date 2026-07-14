@@ -5,7 +5,6 @@
 #include "../../Foundation/GEObjectPool.h"
 #include "../Entity/GEPowerUp.h"
 #include "../Interface/GEProvider.h"
-#include "../../Foundation/GEContext.h"
 
 using namespace GamesEngineeringBase;
 

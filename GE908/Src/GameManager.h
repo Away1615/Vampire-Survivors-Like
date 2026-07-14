@@ -6,7 +6,7 @@
 #include "Core/Save/GESaveRepository.h"
 #include "Core/Entity/GEPlayer.h"
 #include "Core/Interface/GEProvider.h"
-#include "Foundation/GEContext.h"
+#include "Core/GEContext.h"
 #include <array>
 #include <vector>
 

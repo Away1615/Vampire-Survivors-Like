@@ -1,12 +1,11 @@
 #include "GEPowerUpManager.h"
-#include "../Entity/GEPlayer.h"
+#include "../GEContext.h"
 #include "../System/GEPowerUpLifetimeSystem.h"
 #include <cstdlib>
 #include <ctime>
 
 GEPowerUpManager::GEPowerUpManager() {
-    _powerUps.resize(100);     // max 100 power-ups
-    _powerUps.fillNull(100);   // initialize with nullptr
+    _powerUps.fillNull(PowerUp::MAX_POWERUPS);
 }
 
 GEPowerUpManager::~GEPowerUpManager() {
@@ -23,7 +22,7 @@ void GEPowerUpManager::reset() {
     _mapData = nullptr;
     _spawnTimer = 0.0f;
     _powerUps.destroyAll();
-    _powerUps.fillNull(16);
+    _powerUps.fillNull(PowerUp::MAX_POWERUPS);
 }
 
 void GEPowerUpManager::spawnPowerUpAt(const GEPoint& point) {
@@ -63,7 +62,7 @@ void GEPowerUpManager::update(float deltaTime, GEContext& ctx) {
         // could spawn periodic global pickups here if desired
     }
 
-    GEPlayer& player = static_cast<GEPlayer&>(ctx.playerProvider());
+    PlayerProvider& player = ctx.playerProvider();
 
     for (unsigned int i = 0; i < _powerUps.size(); ++i) {
         GEPowerUp* p = _powerUps[i];
@@ -105,7 +104,7 @@ GEPowerUpManagerState GEPowerUpManager::snapshotState() const {
 void GEPowerUpManager::applyState(const GEPowerUpManagerState& state) {
     _spawnTimer = state.spawnTimer;
     _powerUps.destroyAll();
-    _powerUps.fillNull(16);
+    _powerUps.fillNull(PowerUp::MAX_POWERUPS);
 
     for (unsigned int i = 0; i < state.powerUps.size(); ++i) {
         GEPowerUpState* powerUpState = state.powerUps[i];

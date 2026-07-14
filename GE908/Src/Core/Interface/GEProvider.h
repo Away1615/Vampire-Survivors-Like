@@ -6,7 +6,7 @@
 #include "../State/GECodable.h"
 #include "../State/GEGameState.h"
 
-class GEContext;
+struct GEContext;
 
 class GETile;
 class GEEnemy;
@@ -64,6 +64,8 @@ public:
 	virtual void takeDamage(int value) = 0;
 	virtual void update(float deltaTime, Window& window) = 0;
 	virtual GECollisible& collisionBody() = 0;
+	virtual bool canReceiveContactDamage() const = 0;
+	virtual void startContactDamageCooldown() = 0;
 	virtual void applyPowerUp(GEPowerUpType type) = 0;
 	virtual int getHP() const = 0;
 	virtual float getAOECooldownTime() const = 0;

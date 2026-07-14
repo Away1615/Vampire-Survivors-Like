@@ -1,4 +1,5 @@
 #include "GEEnemyManager.h"
+#include "../GEContext.h"
 #include <cstdlib>
 #include <ctime>
 
@@ -21,7 +22,7 @@ void GEEnemyManager::reset() {
     _spawnTimer = 0.0f;
     _difficultyTimer = 0.0f;
     _elapsedTime = 0.0f;
-    _activeEnemyCount = 0;
+    _activeEnemies.clear();
 
     _enemies.destroyAll();
     _enemies.fillNull(Enemy::MAX_ENEMIES);
@@ -34,7 +35,7 @@ void GEEnemyManager::load(GEMapData* mapData) {
 }
 
 bool GEEnemyManager::spawnEnemyOutsideCamera(PlayerProvider& player) {
-    if (_activeEnemyCount >= Enemy::MAX_ENEMIES) return false;
+    if (getEnemyCount() >= Enemy::MAX_ENEMIES) return false;
 
     float camOffsetX = _mapData->getCameraOffsetX();
     float camOffsetY = _mapData->getCameraOffsetY();
@@ -88,13 +89,22 @@ bool GEEnemyManager::spawnEnemyOutsideCamera(PlayerProvider& player) {
         enemy->spawn(type, x, y, mapW, mapH, infinite);
         _enemies.add(enemy);
     }
-    ++_activeEnemyCount;
+    _activeEnemies.push_back(enemy);
     return true;
 }
 
-void GEEnemyManager::draw(Window& window, const GECamera& camera) {
+void GEEnemyManager::rebuildActiveEnemies() {
+    _activeEnemies.clear();
+    _activeEnemies.reserve(_enemies.countActive());
     for (unsigned int i = 0; i < _enemies.size(); ++i) {
         GEEnemy* enemy = _enemies[i];
+        if (enemy && enemy->isAlive()) _activeEnemies.push_back(enemy);
+    }
+}
+
+void GEEnemyManager::draw(Window& window, const GECamera& camera) {
+    for (unsigned int i = 0; i < _activeEnemies.size(); ++i) {
+        GEEnemy* enemy = _activeEnemies[i];
         if (enemy && enemy->isAlive())
             enemy->draw(window, camera);
     }
@@ -104,7 +114,7 @@ void GEEnemyManager::update(float deltaTime, GEContext& ctx) {
     _spawnTimer += deltaTime;
     _difficultyTimer += deltaTime;
     _elapsedTime += deltaTime;
-    _activeEnemyCount = _enemies.countActive();
+    rebuildActiveEnemies();
 
     const int capSteps = static_cast<int>(_elapsedTime / Enemy::ACTIVE_ENEMY_CAP_STEP_TIME);
     const int activeEnemyCap = min(
@@ -112,7 +122,7 @@ void GEEnemyManager::update(float deltaTime, GEContext& ctx) {
         Enemy::BASE_ACTIVE_ENEMY_CAP + capSteps * Enemy::ACTIVE_ENEMY_CAP_INCREMENT
     );
 
-    if (_activeEnemyCount < activeEnemyCap) {
+    if (getEnemyCount() < activeEnemyCap) {
         while (_spawnTimer >= _spawnInterval) {
             if (!spawnEnemyOutsideCamera(ctx.playerProvider())) break;
             _spawnTimer -= _spawnInterval;
@@ -124,20 +134,22 @@ void GEEnemyManager::update(float deltaTime, GEContext& ctx) {
         _spawnInterval = max(_spawnInterval - Enemy::SPAWN_INTERVAL_STEP, Enemy::MIN_SPAWN_INTERVAL);
     }
 
-    GEPlayer& player = static_cast<GEPlayer&>(ctx.playerProvider());
+    PlayerProvider& player = ctx.playerProvider();
+    GECollisible& playerBody = player.collisionBody();
 
-    for (unsigned int i = 0; i < _enemies.size(); ++i) {
-        GEEnemy* enemy = _enemies[i];
+    bool activeEnemiesChanged = false;
+    for (unsigned int i = 0; i < _activeEnemies.size(); ++i) {
+        GEEnemy* enemy = _activeEnemies[i];
         if (!enemy || !enemy->isAlive()) continue;
 
         enemy->update(
             deltaTime,
-            player.getCenterX(),
-            player.getCenterY(),
+            playerBody.getCenterX(),
+            playerBody.getCenterY(),
             ctx.projectileProvider());
 
         // detect collision
-        if (enemy->collide(player)) {
+        if (enemy->collide(playerBody)) {
             if (player.canReceiveContactDamage()) {
                 player.takeDamage(Enemy::PLAYER_COLLISION_DAMAGE);
                 player.startContactDamageCooldown();
@@ -151,13 +163,15 @@ void GEEnemyManager::update(float deltaTime, GEContext& ctx) {
         // record kill
         if (!enemy->isAlive()) {
             registerEnemyKill(enemy->getType());
-            if (_activeEnemyCount > 0) --_activeEnemyCount;
+            activeEnemiesChanged = true;
         }
     }
 
+    if (activeEnemiesChanged) rebuildActiveEnemies();
+
     if (_mapData) {
-        const float playerX = player.getCenterX();
-        const float playerY = player.getCenterY();
+        const float playerX = playerBody.getCenterX();
+        const float playerY = playerBody.getCenterY();
         _mapData->updateActiveChunkFromWorldPosition(playerX, playerY);
     }
 }
@@ -179,9 +193,9 @@ int GEEnemyManager::getKillCount(GEEnemyType type) const {
 
 void GEEnemyManager::removeEnemy(GEEnemy* e) {
     if (!e) return;
-    delete e;
     _enemies.remove(e);
-    if (_activeEnemyCount > 0) --_activeEnemyCount;
+    delete e;
+    rebuildActiveEnemies();
 }
 
 GEEnemyManagerState GEEnemyManager::snapshotState() const {
@@ -231,5 +245,5 @@ void GEEnemyManager::applyState(const GEEnemyManagerState& state) {
         _enemies.add(enemy);
     }
 
-    _activeEnemyCount = _enemies.countActive();
+    rebuildActiveEnemies();
 }

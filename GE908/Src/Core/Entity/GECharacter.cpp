@@ -44,7 +44,7 @@ void GECharacter::heal(int value) {
 
 void GECharacter::triggerDamageFlash(GEColor color, float duration) {
     _damageColor = color;
-    _damageFlashDuration = max(0, duration);
+    _damageFlashDuration = max(0.0f, duration);
     _damageFlashTimer = _damageFlashDuration;
 }
 
@@ -80,15 +80,15 @@ void GECharacter::draw(Window& window, const GECamera& camera) const {
 
 void GECharacter::drawHP(Window& window, const GECamera& camera) const {
 
-    const int camX = camera.getX();
-    const int camY = camera.getY();
+    const float camX = camera.getX();
+    const float camY = camera.getY();
     const int winW = window.getWidth();
     const int winH = window.getHeight();
 
     const int barWidth = getWidth();
     const int barHeight = 8;
-    const int screenX = getOriginX() - camX;
-    const int screenY = getOriginY() - camY + getHeight() + 8;
+    const int screenX = static_cast<int>(getOriginX() - camX);
+    const int screenY = static_cast<int>(getOriginY() - camY + getHeight() + 8);
 
     float hpRatio = (_maxHp > 0) ? static_cast<float>(_hp) / _maxHp : 0.0f;
     hpRatio = clamp(hpRatio, 0.0f, 1.0f);
@@ -124,17 +124,17 @@ void GECharacter::drawHP(Window& window, const GECamera& camera) const {
 void GECharacter::drawHurt(Window& window, const GECamera& camera) const {
     if (_damageFlashTimer <= 0.0f) return;
 
-    int camX = camera.getX();
-    int camY = camera.getY();
+    const float camX = camera.getX();
+    const float camY = camera.getY();
     int winW = window.getWidth();
     int winH = window.getHeight();
 
     for (int dy = 0; dy < getHeight(); ++dy) {
-        int screenY = getOriginY() + dy - camY;
+        const int screenY = static_cast<int>(getOriginY() + dy - camY);
         if (screenY < 0 || screenY >= winH) continue;
 
         for (int dx = 0; dx < getWidth(); ++dx) {
-            int screenX = getOriginX() + dx - camX;
+            const int screenX = static_cast<int>(getOriginX() + dx - camX);
             if (screenX < 0 || screenX >= winW) continue;
 
             if (spriteComponent().alphaAtUnchecked(dx, dy) <= 0) continue;

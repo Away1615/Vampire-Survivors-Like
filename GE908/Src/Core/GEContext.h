@@ -1,6 +1,6 @@
 #pragma once
 #include "../../ThirdParty/GamesEngineeringBase.h"
-#include "../Core/Interface/GEProvider.h"
+#include "Interface/GEProvider.h"
 
 using namespace GamesEngineeringBase;
 

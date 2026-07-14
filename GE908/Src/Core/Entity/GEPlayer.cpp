@@ -1,4 +1,5 @@
 ﻿#include "GEPlayer.h"
+#include "../GEContext.h"
 #include "../Map/GEMapData.h"
 #include "../../Foundation/GEDebug.h"
 #include "GEEnemy.h"
@@ -232,8 +233,8 @@ void GEPlayer::drawAoeImpacts(Window& window, const GECamera& camera) const {
 }
 
 void GEPlayer::drawImpact(Window& window, const GECamera& camera, float centerX, float centerY, float radius, GEColor color) const {
-    int camX = camera.getX();
-    int camY = camera.getY();
+    const float camX = camera.getX();
+    const float camY = camera.getY();
 
     int winW = window.getWidth();
     int winH = window.getHeight();

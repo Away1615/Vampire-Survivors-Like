@@ -1,7 +1,5 @@
 #pragma once
 #include "../Interface/GEProvider.h"
-#include "../Entity/GEPlayer.h"
-#include "../Entity/GEEnemy.h"
 #include "../Entity/GEProjectile.h"
 #include "../../Foundation/GEObjectPool.h"
 #include "../../Foundation/GECollisible.h"

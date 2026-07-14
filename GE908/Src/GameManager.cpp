@@ -245,9 +245,7 @@ bool GameManager::restoreSaveRecord(const GESaveRecord& record) {
         : (_mapData.getActiveChunkPixelHeight() > 0 ? _mapData.getActiveChunkPixelHeight() : WINDOW_HEIGHT);
     _camera.load(WINDOW_WIDTH, WINDOW_HEIGHT, mapWorldWidth, mapWorldHeight);
     _camera.setPosition(snapshot.map.cameraX, snapshot.map.cameraY);
-    _mapData.setCameraOffset(
-        static_cast<int>(snapshot.map.cameraX),
-        static_cast<int>(snapshot.map.cameraY));
+    _mapData.setCameraOffset(snapshot.map.cameraX, snapshot.map.cameraY);
 
     _enemyProvider.load(&_mapData);
     _enemyProvider.applyState(snapshot.enemies);

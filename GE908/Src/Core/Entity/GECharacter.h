@@ -2,9 +2,10 @@
 #include "../../../ThirdParty/GamesEngineeringBase.h"
 #include "../../Foundation/GECollisible.h"
 #include "../../Foundation/GEModel.h"
-#include "../../Foundation/GEContext.h"
 
 using namespace GamesEngineeringBase;
+
+struct GEContext;
 
 class GECharacter : public GECollisible {
 
@@ -61,5 +62,5 @@ public:
 	void setMapBounds(int mapWidth, int mapHeight) { _mapWidth = mapWidth;_mapHeight = mapHeight; }
     int getMaxHP() const { return _maxHp; }
     void setMaxHP(int value) { _maxHp = max(0, value); if (_hp > _maxHp) _hp = _maxHp; }
-    void setCurrentHP(int value) { _hp = clamp(value, 0, _maxHp); }
+    void setCurrentHP(int value) { _hp = min(max(value, 0), _maxHp); }
 };

@@ -70,17 +70,17 @@ public:
 
     // draw collider's image
 	virtual void draw(Window& window, const GECamera& camera) const {
-		int camX = camera.getX();
-		int camY = camera.getY();
+		const float camX = camera.getX();
+		const float camY = camera.getY();
 		int winW = window.getWidth();
 		int winH = window.getHeight();
 
 		for (int dy = 0; dy < _sprite.getHeight(); ++dy) {
-			int screenY = getOriginY() + dy - camY;
+			const int screenY = static_cast<int>(getOriginY() + dy - camY);
 			if (screenY < 0 || screenY >= winH) continue;
 
 			for (int dx = 0; dx < _sprite.getWidth(); ++dx) {
-				int screenX = getOriginX() + dx - camX;
+				const int screenX = static_cast<int>(getOriginX() + dx - camX);
 				if (screenX < 0 || screenX >= winW) continue;
 
 				if (_sprite.alphaAtUnchecked(dx, dy) > 0)
@@ -98,8 +98,8 @@ public:
 			|| _collider.getLayer() == GECollisionLayer::None
 			|| _collider.getShape() == GEColliderShape::None) return;
 
-        int camX = camera.getX();
-        int camY = camera.getY();
+        const float camX = camera.getX();
+        const float camY = camera.getY();
         int winW = window.getWidth();
         int winH = window.getHeight();
 

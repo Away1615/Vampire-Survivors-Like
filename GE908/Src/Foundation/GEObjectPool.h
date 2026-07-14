@@ -12,7 +12,7 @@ template <typename T>
 class GEObjectPool {
 private:
     // The pool owns its pointer elements. Inactive objects stay allocated for reuse.
-    mutable T* _data = nullptr;    // data
+    T* _data = nullptr;            // data
 
     unsigned int _size = 0;        // number of slots currently in use
     unsigned int _capacity = 0;    // nallocated array length
@@ -55,11 +55,8 @@ public:
 
     unsigned int countActive() const {
         unsigned int count = 0;
-        for (unsigned int i = 0; i < _size; ++i) {
-            if (!_data[i] || !_data[i]->isActiveElement()) continue;
-            if (i != count) std::swap(_data[count], _data[i]);
-            ++count;
-        }
+        for (unsigned int i = 0; i < _size; ++i)
+            if (_data[i] && _data[i]->isActiveElement()) ++count;
         return count;
     }
 

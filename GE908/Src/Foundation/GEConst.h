@@ -72,6 +72,7 @@ namespace PowerUp {
     static constexpr float POWERUP_LIFETIME_SECONDS = 18.0f;
     static constexpr float DROP_CHANCE = 0.5f;
     static constexpr float COLLISION_RADIUS = 16.0f;
+    static constexpr int MAX_POWERUPS = 100;
 }
 
 // Projectile related values

@@ -1,4 +1,5 @@
 #include "GEEnemy.h"
+#include "../GEContext.h"
 #include "../System/GEEnemyRangedAttackSystem.h"
 #include <string>
 

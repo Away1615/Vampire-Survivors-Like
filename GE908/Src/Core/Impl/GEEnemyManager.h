@@ -1,16 +1,16 @@
 #pragma once
 #include "../Entity/GEEnemy.h"
-#include "../Entity/GEPlayer.h"
 #include "../Map/GEMapData.h"
 #include "../../Foundation/GEObjectPool.h"
 #include "../../Foundation/GEUtility.h"
 #include "../Interface/GEProvider.h"
+#include <vector>
 
 class GEEnemyManager : public EnemyProvider {
 private:
     GEObjectPool<GEEnemy*> _enemies;
+    std::vector<GEEnemy*> _activeEnemies;
 
-    int _activeEnemyCount = 0;
     float _spawnTimer = 0.0f;
     float _spawnInterval = Enemy::DEFAULT_SPAWN_INTERVAL;
     float _difficultyTimer = 0.0f;
@@ -20,14 +20,17 @@ private:
     GEMapData* _mapData = nullptr;
 
     bool spawnEnemyOutsideCamera(PlayerProvider& player);
+    void rebuildActiveEnemies();
     void removeEnemy(GEEnemy* enemy);
 
 public:
     GEEnemyManager();
     ~GEEnemyManager();
 
-    int getEnemyCount() const { return _activeEnemyCount; }
-    GEEnemy* getEnemyAt(int index) const { return _enemies[index]; }
+    int getEnemyCount() const { return static_cast<int>(_activeEnemies.size()); }
+    GEEnemy* getEnemyAt(int index) const {
+        return index >= 0 && index < getEnemyCount() ? _activeEnemies[index] : nullptr;
+    }
 
     void load(GEMapData* mapData);
     void reset() override;

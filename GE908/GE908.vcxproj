@@ -165,7 +165,7 @@
     <ClInclude Include="Src\Core\Impl\GEMapsManager.h" />
     <ClInclude Include="Src\Core\State\GECodable.h" />
     <ClInclude Include="Src\Core\State\GEGameState.h" />
-    <ClInclude Include="Src\Foundation\GEContext.h" />
+    <ClInclude Include="Src\Core\GEContext.h" />
     <ClInclude Include="Src\Foundation\Component\GETransformComponent.h" />
     <ClInclude Include="Src\Foundation\Component\GESpriteComponent.h" />
     <ClInclude Include="Src\Foundation\Component\GEColliderComponent.h" />
