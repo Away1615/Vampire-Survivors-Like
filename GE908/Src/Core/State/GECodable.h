@@ -1,5 +1,6 @@
 #pragma once
 
+// Defines the snapshot contract for runtime state.
 template <typename TState>
 class GECodable {
 public:

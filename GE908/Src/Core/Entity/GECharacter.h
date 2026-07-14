@@ -5,8 +5,7 @@
 
 using namespace GamesEngineeringBase;
 
-struct GEContext;
-
+// Shares movement, health, and rendering behavior.
 class GECharacter : public GECollisible {
 
 protected:
@@ -41,16 +40,14 @@ protected:
     void setContactDamageCooldownDuration(float duration) { _contactDamageCooldownDuration = max(0.0f, duration); }
 
 public:
-    GECharacter(const std::string& filename = "", GECollisionLayer layer = GECollisionLayer::None)
-        : GECollisible(filename, layer) {
+    GECharacter(const Image& image, GECollisionLayer layer)
+        : GECollisible(image, layer) {
     }
 
     virtual ~GECharacter() = default;
     virtual void takeDamage(int value);
 
     virtual void heal(int value);
-
-    virtual void bind(GEContext& ctx) = 0;
 
     bool canReceiveContactDamage() const { return _contactDamageCooldownTimer <= 0.0f; }
     void startContactDamageCooldown();

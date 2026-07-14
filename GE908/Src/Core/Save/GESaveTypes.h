@@ -4,7 +4,7 @@
 #include <string>
 #include "../State/GEGameState.h"
 
-static constexpr uint32_t GE_SAVE_FORMAT_VERSION = 1u;
+static constexpr uint32_t GE_SAVE_FORMAT_VERSION = 3u;
 
 struct GEMapRuntimeState {
     GEMapMode mapMode = GEMapMode::Fixed;
@@ -17,6 +17,7 @@ struct GEMapRuntimeState {
     float levelTimeRemaining = 120.0f;
 };
 
+// Captures world state for save and restore.
 struct GEGameSnapshot {
     GEMapRuntimeState map;
     GEPlayerState player;

@@ -1,11 +1,12 @@
 #pragma once
 #include "../../ThirdParty/GamesEngineeringBase.h"
 #include "GEUtility.h"
+#include <array>
 using namespace GamesEngineeringBase;
 
 class GEFont {
 private:
-    Image* _fontChar[95] = { nullptr }; // 32~126 ASCII
+    std::array<Image, 95> _fontChars; // Printable ASCII range.
     bool _isLoaded = false;
 
 public:
@@ -13,34 +14,26 @@ public:
     ~GEFont() { release(); }
 
     void release() {
-        for (int i = 0; i < 95; ++i) {
-            delete _fontChar[i];
-            _fontChar[i] = nullptr;
-        }
+        for (Image& image : _fontChars) image.free();
         _isLoaded = false;
     }
 
-    bool load(const std::string& folder = "Src/Assets/Fonts/") {
+    bool load(const std::string& folder) {
+        release();
         for (int i = 0; i < 95; ++i) {
             std::string filename = folder + std::to_string(i + 32) + ".png";
-            Image* img = new Image();
-            if (!img->load(filename)) {
-                delete img;
-                for (int j = 0; j < i; ++j) {
-                    delete _fontChar[j];
-                    _fontChar[j] = nullptr;
-                }
+            if (!_fontChars[static_cast<size_t>(i)].load(filename)) {
+                release();
                 return false;
             }
-            _fontChar[i] = img;
         }
         _isLoaded = true;
         return true;
     }
 
-    Image* getChar(char c) const {
+    const Image* getChar(char c) const {
         if (!_isLoaded || c < 32 || c > 126) return nullptr;
-        return _fontChar[c - 32];
+        return &_fontChars[static_cast<size_t>(c - 32)];
     }
 
     GESize draw(const std::string& text, GEPoint originPoint, const GEColor textColor, Window& window) const {
@@ -52,7 +45,7 @@ public:
         int windowHeight = window.getHeight();
 
         for (char c : text) {
-            Image* font = getChar(c);
+            const Image* font = getChar(c);
             if (!font) continue;
 
             int imageWidth = font->width;

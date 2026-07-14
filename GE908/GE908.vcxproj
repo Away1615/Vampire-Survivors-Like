@@ -144,6 +144,8 @@
     <ClCompile Include="Src\Core\Entity\GEEnemy.cpp" />
     <ClCompile Include="Src\Core\Entity\GEPlayer.cpp" />
     <ClCompile Include="Src\Core\Impl\GEMapsManager.cpp" />
+    <ClCompile Include="Src\Core\Resource\GEGameResources.cpp" />
+    <ClCompile Include="Src\Core\Session\GEGameSession.cpp" />
     <ClCompile Include="Src\Foundation\GECollisible.h" />
     <ClCompile Include="Src\Foundation\GEConst.h" />
     <ClCompile Include="Src\Foundation\GEDebug.h" />
@@ -163,21 +165,16 @@
     <ClInclude Include="Src\Core\Entity\GECharacter.h" />
     <ClInclude Include="Src\Core\Entity\GEPlayer.h" />
     <ClInclude Include="Src\Core\Impl\GEMapsManager.h" />
+    <ClInclude Include="Src\Core\Resource\GEGameResources.h" />
+    <ClInclude Include="Src\Core\Session\GEGameSession.h" />
     <ClInclude Include="Src\Core\State\GECodable.h" />
     <ClInclude Include="Src\Core\State\GEGameState.h" />
-    <ClInclude Include="Src\Core\GEContext.h" />
     <ClInclude Include="Src\Foundation\Component\GETransformComponent.h" />
     <ClInclude Include="Src\Foundation\Component\GESpriteComponent.h" />
     <ClInclude Include="Src\Foundation\Component\GEColliderComponent.h" />
     <ClInclude Include="Src\Foundation\GECollisionQuery.h" />
     <ClInclude Include="Src\Foundation\GEPath.h" />
-    <ClInclude Include="Src\Core\Component\GEProjectileComponent.h" />
-    <ClInclude Include="Src\Core\Component\GEPowerUpComponent.h" />
-    <ClInclude Include="Src\Core\Component\GEEnemyComponent.h" />
     <ClInclude Include="Src\Core\Component\GEPlayerComponent.h" />
-    <ClInclude Include="Src\Core\System\GEProjectileMovementSystem.h" />
-    <ClInclude Include="Src\Core\System\GEPowerUpLifetimeSystem.h" />
-    <ClInclude Include="Src\Core\System\GEEnemyRangedAttackSystem.h" />
     <ClInclude Include="Src\Core\System\GEPlayerCombatSystem.h" />
     <ClInclude Include="Src\Core\Interface\GEProvider.h" />
     <ClInclude Include="Src\Foundation\GEModel.h" />
@@ -312,6 +309,9 @@
     <Image Include="Src\Assets\MapTiles\7.png" />
     <Image Include="Src\Assets\MapTiles\8.png" />
     <Image Include="Src\Assets\MapTiles\9.png" />
+    <Image Include="Src\Assets\Player\BACK_WALK\Wizard_Back_Walk.png" />
+    <Image Include="Src\Assets\Player\FRONT_WALK\Wizard_Front_Walk.png" />
+    <Image Include="Src\Assets\Player\SIDE_WALK\Wizard_Side_Walk.png" />
     <Image Include="Src\Assets\Textures\aoe_target.png" />
     <Image Include="Src\Assets\Textures\arrow.png" />
     <Image Include="Src\Assets\Textures\attack_speed.png" />
@@ -321,7 +321,6 @@
     <Image Include="Src\Assets\Textures\enemy_normal.png" />
     <Image Include="Src\Assets\Textures\enemy_static.png" />
     <Image Include="Src\Assets\Textures\heal.png" />
-    <Image Include="Src\Assets\Textures\player.png" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Src\Assets\Maps\tilt.txt" />

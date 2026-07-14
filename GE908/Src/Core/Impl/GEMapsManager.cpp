@@ -1,51 +1,38 @@
 #include "GEMapsManager.h"
+#include "../Resource/GEGameResources.h"
 #include <cmath>
 
-GEMapsManager::GEMapsManager() = default;
+static constexpr const char* MAP_FILE_PATH = "Src/Assets/Maps/tilt.txt";
 
-GEMapsManager::~GEMapsManager() {
-	if (_tiles) {
-		for (int i = 0;i < Map::TILES_COUNT;i++) {
-			delete _tiles[i];
-		}
-		delete[] _tiles;
+static GECollisionLayer TileCollisionLayer(int tileID) {
+	if (tileID <= 13 || tileID == 23) return GECollisionLayer::None;
+	if (tileID == 24) return GECollisionLayer::TerrainHazard;
+	return GECollisionLayer::TerrainSolid;
+}
+
+GEMapsManager::GEMapsManager(const GEGameResources& resources) {
+	for (int i = 0; i < Map::TILES_COUNT; ++i) {
+		_tiles[static_cast<size_t>(i)] = std::make_unique<GETile>(
+			resources.mapTileTexture(i),
+			TileCollisionLayer(i));
 	}
 }
 
-void GEMapsManager::load(GEMapData* mapData) {
+bool GEMapsManager::load(GEMapData* mapData, GEMapMode mapMode) {
+	if (!mapData || !mapData->load(MAP_FILE_PATH, mapMode)) return false;
 	_mapData = mapData;
-	if (!_mapData || !_tiles) return;
 
 	for (int i = 0; i < Map::TILES_COUNT; ++i) {
-		if (_tiles[i]) {
-			_tiles[i]->setCollisionSize(
-				static_cast<float>(_mapData->getTileWidth()),
-				static_cast<float>(_mapData->getTileHeight()));
-		}
+		_tiles[static_cast<size_t>(i)]->setCollisionSize(
+			static_cast<float>(_mapData->getTileWidth()),
+			static_cast<float>(_mapData->getTileHeight()));
 	}
-}
-
-void GEMapsManager::loadTileResources(const std::string& folderPath) {
-	_tiles = new GETile * [Map::TILES_COUNT];
-
-	for (int i = 0;i < Map::TILES_COUNT;i++) {
-		std::string filePath = folderPath + std::to_string(i) + ".png";
-
-		if (i <= 13 || i == 23) {
-			_tiles[i] = new GETile(filePath, GECollisionLayer::None);
-		}
-		else if (i == 24) {
-			_tiles[i] = new GETile(filePath, GECollisionLayer::TerrainHazard);
-		}
-		else {
-			_tiles[i] = new GETile(filePath, GECollisionLayer::TerrainSolid);
-		}
-	}
+	return true;
 }
 
 GETile* GEMapsManager::getTile(int tileID) const {
 	if (tileID < 0 || tileID >= Map::TILES_COUNT) return nullptr;
-	return _tiles[tileID];
+	return _tiles[static_cast<size_t>(tileID)].get();
 }
 
 GECollisionLayer GEMapsManager::getTileCollisionLayer(int tileID) const {
@@ -71,7 +58,7 @@ void GEMapsManager::draw(Window& window, const GECamera& camera) const {
 	int minRow = static_cast<int>(std::floor(cameraY / tileHeight));
 	int maxRow = static_cast<int>(std::floor((cameraBottom - 1.0f) / tileHeight));
 
-	// Expand the range slightly to avoid visible gaps at the edges.
+	// Pad the view to avoid edge gaps.
 	minCol -= 1;
 	minRow -= 1;
 	maxCol += 1;

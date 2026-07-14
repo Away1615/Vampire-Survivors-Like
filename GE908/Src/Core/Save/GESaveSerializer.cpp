@@ -66,6 +66,7 @@ namespace {
 
         uint32_t version = 0u;
         int32_t mapMode = 0;
+        // Reject incompatible layouts.
         if (!readValue(stream, version) || version != GE_SAVE_FORMAT_VERSION) return false;
         if (!readString(stream, metadata.id)) return false;
         if (!readString(stream, metadata.displayName)) return false;
@@ -114,6 +115,8 @@ namespace {
             && writeValue(stream, state.aoeCooldownTimer)
             && writeValue(stream, state.aoeCooldown)
             && writeValue(stream, state.contactDamageCooldownTimer)
+            && writeBool(stream, state.wasInFire)
+            && writeValue(stream, state.fireTimer)
             && writeValue(stream, state.aoeTargetCount)
             && writeBool(stream, state.aoeKeyHeld)
             && writeValue(stream, state.aoeTargetBuffTimer);
@@ -131,6 +134,8 @@ namespace {
             && readValue(stream, state.aoeCooldownTimer)
             && readValue(stream, state.aoeCooldown)
             && readValue(stream, state.contactDamageCooldownTimer)
+            && readBool(stream, state.wasInFire)
+            && readValue(stream, state.fireTimer)
             && readValue(stream, state.aoeTargetCount)
             && readBool(stream, state.aoeKeyHeld)
             && readValue(stream, state.aoeTargetBuffTimer);
@@ -140,7 +145,8 @@ namespace {
         if (!writeValue(stream, state.spawnTimer)
             || !writeValue(stream, state.spawnInterval)
             || !writeValue(stream, state.difficultyTimer)
-            || !writeValue(stream, state.elapsedTime)) return false;
+            || !writeValue(stream, state.elapsedTime)
+            || !writeValue(stream, state.randomState)) return false;
 
         for (int value : state.killCounts) {
             if (!writeValue(stream, value)) return false;
@@ -149,14 +155,15 @@ namespace {
         const uint32_t count = static_cast<uint32_t>(state.enemyCount());
         if (!writeValue(stream, count)) return false;
         for (uint32_t index = 0; index < count; ++index) {
-            const GEEnemyState* enemy = state.enemyStates[index];
-            const int32_t type = static_cast<int32_t>(enemy->type);
+            const GEEnemyState& enemy = state.enemyStates[index];
+            const int32_t type = static_cast<int32_t>(enemy.type);
             if (!writeValue(stream, type)
-                || !writeValue(stream, enemy->centerX)
-                || !writeValue(stream, enemy->centerY)
-                || !writeValue(stream, enemy->hp)
-                || !writeValue(stream, enemy->maxHp)
-                || !writeValue(stream, enemy->attackCooldown)) return false;
+                || !writeValue(stream, enemy.centerX)
+                || !writeValue(stream, enemy.centerY)
+                || !writeValue(stream, enemy.hp)
+                || !writeValue(stream, enemy.maxHp)
+                || !writeValue(stream, enemy.attackCooldown)
+                || !writeValue(stream, enemy.contactDamageCooldownTimer)) return false;
         }
         return true;
     }
@@ -166,7 +173,8 @@ namespace {
         if (!readValue(stream, state.spawnTimer)
             || !readValue(stream, state.spawnInterval)
             || !readValue(stream, state.difficultyTimer)
-            || !readValue(stream, state.elapsedTime)) return false;
+            || !readValue(stream, state.elapsedTime)
+            || !readValue(stream, state.randomState)) return false;
 
         for (int& value : state.killCounts) {
             if (!readValue(stream, value)) return false;
@@ -182,9 +190,9 @@ namespace {
                 || !readValue(stream, enemy.centerY)
                 || !readValue(stream, enemy.hp)
                 || !readValue(stream, enemy.maxHp)
-                || !readValue(stream, enemy.attackCooldown)) return false;
+                || !readValue(stream, enemy.attackCooldown)
+                || !readValue(stream, enemy.contactDamageCooldownTimer)) return false;
             enemy.type = static_cast<GEEnemyType>(type);
-            enemy.activate();
             state.addEnemyState(enemy);
         }
         return true;
@@ -194,15 +202,15 @@ namespace {
         const uint32_t count = static_cast<uint32_t>(state.projectileCount());
         if (!writeValue(stream, count)) return false;
         for (uint32_t index = 0; index < count; ++index) {
-            const GEProjectileState* projectile = state.projectiles[index];
-            const int32_t owner = static_cast<int32_t>(projectile->owner);
+            const GEProjectileState& projectile = state.projectiles[index];
+            const int32_t owner = static_cast<int32_t>(projectile.owner);
             if (!writeValue(stream, owner)
-                || !writeValue(stream, projectile->centerX)
-                || !writeValue(stream, projectile->centerY)
-                || !writeValue(stream, projectile->dirX)
-                || !writeValue(stream, projectile->dirY)
-                || !writeValue(stream, projectile->speed)
-                || !writeValue(stream, projectile->damage)) return false;
+                || !writeValue(stream, projectile.centerX)
+                || !writeValue(stream, projectile.centerY)
+                || !writeValue(stream, projectile.dirX)
+                || !writeValue(stream, projectile.dirY)
+                || !writeValue(stream, projectile.speed)
+                || !writeValue(stream, projectile.damage)) return false;
         }
         return true;
     }
@@ -222,33 +230,33 @@ namespace {
                 || !readValue(stream, projectile.speed)
                 || !readValue(stream, projectile.damage)) return false;
             projectile.owner = static_cast<ProjectileOwner>(owner);
-            projectile.activate();
             state.addProjectileState(projectile);
         }
         return true;
     }
 
     bool writePowerUpState(std::ostream& stream, const GEPowerUpManagerState& state) {
-        if (!writeValue(stream, state.spawnTimer)) return false;
         const uint32_t count = static_cast<uint32_t>(state.powerUpCount());
-        if (!writeValue(stream, count)) return false;
+        if (!writeValue(stream, state.randomState)
+            || !writeValue(stream, count)) return false;
         for (uint32_t index = 0; index < count; ++index) {
-            const GEPowerUpState* powerUp = state.powerUps[index];
-            const int32_t type = static_cast<int32_t>(powerUp->type);
+            const GEPowerUpState& powerUp = state.powerUps[index];
+            const int32_t type = static_cast<int32_t>(powerUp.type);
             if (!writeValue(stream, type)
-                || !writeValue(stream, powerUp->centerX)
-                || !writeValue(stream, powerUp->centerY)
-                || !writeValue(stream, powerUp->remainingTime)
-                || !writeValue(stream, powerUp->timeToLive)) return false;
+                || !writeValue(stream, powerUp.centerX)
+                || !writeValue(stream, powerUp.centerY)
+                || !writeValue(stream, powerUp.remainingTime)
+                || !writeValue(stream, powerUp.timeToLive)) return false;
         }
         return true;
     }
 
     bool readPowerUpState(std::istream& stream, GEPowerUpManagerState& state) {
         state.clearPowerUps();
-        if (!readValue(stream, state.spawnTimer)) return false;
         uint32_t count = 0u;
-        if (!readValue(stream, count) || count > 100u) return false;
+        if (!readValue(stream, state.randomState)
+            || !readValue(stream, count)
+            || count > PowerUp::MAX_POWERUPS) return false;
         for (uint32_t index = 0; index < count; ++index) {
             GEPowerUpState powerUp;
             int32_t type = 0;
@@ -258,7 +266,6 @@ namespace {
                 || !readValue(stream, powerUp.remainingTime)
                 || !readValue(stream, powerUp.timeToLive)) return false;
             powerUp.type = static_cast<GEPowerUpType>(type);
-            powerUp.activate();
             state.addPowerUpState(powerUp);
         }
         return true;

@@ -7,6 +7,7 @@
 #include <cfloat>
 #include <cmath>
 
+// Coordinates player attacks and AOE damage.
 class GEPlayerCombatSystem {
 private:
     static void updateAutoAttack(
@@ -52,7 +53,7 @@ private:
             centerY,
             dirX,
             dirY,
-            Player::PLAYER_PROJECTILE_SPEED,
+            Projectile::MOVE_SPEED,
             Player::PLAYER_PROJECTILE_DAMAGE);
     }
 
@@ -61,7 +62,7 @@ private:
         const GETransformComponent& transform,
         EnemyProvider* enemyProvider,
         PowerUpProvider* powerUpProvider) {
-        if (!enemyProvider) return;
+        if (!enemyProvider || !powerUpProvider) return;
 
         const float originX = transform.getCenterX();
         const float originY = transform.getCenterY();
@@ -113,10 +114,7 @@ private:
             GEEnemy& enemy = *topEnemies[i];
             enemy.takeDamage(Player::PLAYER_AOE_DAMAGE);
             if (!enemy.isAlive()) {
-                enemyProvider->registerEnemyKill(enemy.getType());
-                if (powerUpProvider) {
-                    powerUpProvider->onEnemyDefeated(GEPoint(enemy.getCenterX(), enemy.getCenterY()));
-                }
+                enemyProvider->settleEnemyDefeat(enemy, *powerUpProvider);
             }
             player.recordAoeImpact(enemy.getCenterX(), enemy.getCenterY());
         }

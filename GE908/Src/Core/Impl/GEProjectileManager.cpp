@@ -1,75 +1,73 @@
 #include "GEProjectileManager.h"
-#include "../GEContext.h"
 #include "../Entity/GEEnemy.h"
-#include "../System/GEProjectileMovementSystem.h"
+#include "../Resource/GEGameResources.h"
 
-GEProjectileManager::GEProjectileManager() {
-    _projectiles.resize(Projectile::MAX_PROJECTILES);
-    _projectiles.fillNull(Projectile::MAX_PROJECTILES);
+GEProjectileManager::GEProjectileManager(const GEGameResources& resources)
+    : _resources(resources) {
+    _projectiles.reset(Projectile::MAX_PROJECTILES);
 }
 
-GEProjectileManager::~GEProjectileManager() {
-    _projectiles.destroyAll();
-    _projectiles.clear();
-}
-
-void GEProjectileManager::load(GEMapData*) {
-    reset();
-}
+GEProjectileManager::~GEProjectileManager() = default;
 
 void GEProjectileManager::reset() {
-    _projectiles.destroyAll();
-    _projectiles.fillNull(Projectile::MAX_PROJECTILES);
+    _projectiles.reset(Projectile::MAX_PROJECTILES);
 }
 
 void GEProjectileManager::addProjectile(ProjectileOwner from,
     float startPointX, float startPointY,
     float dirX, float dirY, float speed, int damage)
 {
-    const std::string texturePath =
-        (from == ProjectileOwner::FromPlayer)
-        ? Projectile::PLAYER_PROJECTILE_TEXTURE
-        : Projectile::ENEMY_PROJECTILE_TEXTURE;
+    const Image& texture = _resources.projectileTexture(from);
 
-    // reuse inactive projectile slot if available
+    // Reuse inactive projectiles.
     for (unsigned int i = 0; i < _projectiles.size(); ++i) {
-        GEProjectile* p = _projectiles[i];
+        GEProjectile* p = _projectiles.getAt(i);
         if (p == nullptr) {
-            _projectiles[i] = new GEProjectile(texturePath, from,
-                startPointX, startPointY, dirX, dirY, speed, damage);
+            _projectiles.add(new GEProjectile(texture, from,
+                startPointX, startPointY, dirX, dirY, speed, damage));
             return;
         }
         if (!p->isActiveElement()) {
-            p->spawn(texturePath, from,
+            p->spawn(texture, from,
                 startPointX, startPointY, dirX, dirY, speed, damage);
             return;
         }
     }
 }
 
-void GEProjectileManager::update(float deltaTime, GEContext& ctx) {
-    PlayerProvider& player = ctx.playerProvider();
-    const int enemyCount = ctx.enemyProvider().getEnemyCount();
+void GEProjectileManager::update(float deltaTime,
+    PlayerProvider& player,
+    EnemyProvider& enemyProvider,
+    PowerUpProvider& powerUpProvider,
+    const GECamera& camera) {
+    const int enemyCount = enemyProvider.getEnemyCount();
+    const float minX = camera.getX() - Projectile::DESPAWN_MARGIN;
+    const float minY = camera.getY() - Projectile::DESPAWN_MARGIN;
+    const float maxX = camera.getX() + camera.getWidth() + Projectile::DESPAWN_MARGIN;
+    const float maxY = camera.getY() + camera.getHeight() + Projectile::DESPAWN_MARGIN;
 
     for (unsigned int i = 0; i < _projectiles.size(); ++i) {
-        GEProjectile* projectile = _projectiles[i];
+        GEProjectile* projectile = _projectiles.getAt(i);
         if (!projectile || !projectile->isActiveElement()) continue;
 
-        GEProjectileMovementSystem::update(
-            projectile->transformComponent(),
-            projectile->projectileComponent(),
-            deltaTime);
+        projectile->update(deltaTime);
+        if (projectile->getCenterX() < minX
+            || projectile->getCenterX() > maxX
+            || projectile->getCenterY() < minY
+            || projectile->getCenterY() > maxY) {
+            projectile->deactivate();
+            continue;
+        }
 
         if (projectile->getOwner() == ProjectileOwner::FromPlayer) {
-            // player bullets hit enemies
             for (int j = 0; j < enemyCount; ++j) {
-                GEEnemy* enemy = ctx.enemyProvider().getEnemyAt(j);
+                GEEnemy* enemy = enemyProvider.getEnemyAt(j);
                 if (enemy && enemy->isAlive() && projectile->collide(*enemy)) {
                     enemy->takeDamage(projectile->getDamage());
                     if (!enemy->isAlive()) {
-                        ctx.enemyProvider().registerEnemyKill(enemy->getType());
-                        ctx.powerupProvider().onEnemyDefeated(
-                            GEPoint(enemy->getCenterX(), enemy->getCenterY()));
+                        enemyProvider.settleEnemyDefeat(
+                            *enemy,
+                            powerUpProvider);
                     }
                     projectile->deactivate();
                     break;
@@ -77,7 +75,6 @@ void GEProjectileManager::update(float deltaTime, GEContext& ctx) {
             }
         }
         else {
-            // enemy bullets hit player
             if (projectile->collide(player.collisionBody())) {
                 player.takeDamage(projectile->getDamage());
                 projectile->deactivate();
@@ -89,7 +86,7 @@ void GEProjectileManager::update(float deltaTime, GEContext& ctx) {
 
 void GEProjectileManager::draw(Window& window, const GECamera& camera) {
     for (unsigned int i = 0; i < _projectiles.size(); ++i) {
-        GEProjectile* projectile = _projectiles[i];
+        GEProjectile* projectile = _projectiles.getAt(i);
         if (projectile && projectile->isActiveElement())
             projectile->draw(window, camera);
     }
@@ -98,7 +95,7 @@ void GEProjectileManager::draw(Window& window, const GECamera& camera) {
 GEProjectileManagerState GEProjectileManager::snapshotState() const {
     GEProjectileManagerState state;
     for (unsigned int i = 0; i < _projectiles.size(); ++i) {
-        GEProjectile* projectile = _projectiles[i];
+        GEProjectile* projectile = _projectiles.getAt(i);
         if (!projectile || !projectile->isActiveElement()) continue;
         state.addProjectileState(projectile->snapshotState());
     }
@@ -106,14 +103,13 @@ GEProjectileManagerState GEProjectileManager::snapshotState() const {
 }
 
 void GEProjectileManager::applyState(const GEProjectileManagerState& state) {
-    _projectiles.destroyAll();
-    _projectiles.fillNull(Projectile::MAX_PROJECTILES);
+    _projectiles.reset(Projectile::MAX_PROJECTILES);
 
     for (unsigned int i = 0; i < state.projectiles.size(); ++i) {
-        GEProjectileState* projectileState = state.projectiles[i];
-        if (!projectileState || !projectileState->isActiveElement()) continue;
-        GEProjectile* projectile = new GEProjectile();
-        projectile->applyState(*projectileState);
+        const GEProjectileState& projectileState = state.projectiles[i];
+        GEProjectile* projectile = new GEProjectile(
+            _resources.projectileTexture(projectileState.owner));
+        projectile->applyState(projectileState);
         _projectiles.add(projectile);
     }
 }

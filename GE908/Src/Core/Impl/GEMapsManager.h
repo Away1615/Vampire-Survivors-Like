@@ -1,33 +1,32 @@
 ﻿#pragma once
-#include <string>
 #include "../../../ThirdParty/GamesEngineeringBase.h"
 #include "../../Foundation/GECollisible.h"
 #include "../../Foundation/GEConst.h"
 #include "../Map/GEMapData.h"
 #include "../Interface/GEProvider.h"
 #include "../Entity/GETile.h"
+#include <array>
+#include <memory>
 
 using namespace GamesEngineeringBase;
 
+class GEGameResources;
+
+// Loads and renders map tiles.
 class GEMapsManager : public MapProvider {
 private:
-    GETile** _tiles = nullptr;// image cache
-    int _tileCount = 0;
+    std::array<std::unique_ptr<GETile>, Map::TILES_COUNT> _tiles;
     GEMapData* _mapData = nullptr;
+    GETile* getTile(int tileID) const;
 public:
 
-    GEMapsManager();
-    ~GEMapsManager();
+    explicit GEMapsManager(const GEGameResources& resources);
+    ~GEMapsManager() = default;
 
-    // load all tiles images from folder
-    void loadTileResources(const std::string& folderPath);
-
-    void load(GEMapData* mapData);
+    bool load(GEMapData* mapData, GEMapMode mapMode) override;
 
     void reset() override { _mapData = nullptr; }
 
-    // get tile Image
-    GETile* getTile(int tileID) const;
     GECollisionLayer getTileCollisionLayer(int tileID) const override;
 
     GEMapData* getMapData() const { return _mapData; }

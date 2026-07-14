@@ -1,17 +1,5 @@
 #include "GEEnemy.h"
-#include "../GEContext.h"
-#include "../System/GEEnemyRangedAttackSystem.h"
-#include <string>
-
-static const std::string EnemyImagePath(GEEnemyType t) {
-	switch (t) {
-    case GEEnemyType::Normal:        return "Src/Assets/Textures/enemy_normal.png";
-    case GEEnemyType::Fast:          return "Src/Assets/Textures/enemy_fast.png";
-    case GEEnemyType::Heavy:         return "Src/Assets/Textures/enemy_heavy.png";
-    case GEEnemyType::StaticShooter: return "Src/Assets/Textures/enemy_static.png";
-	default:                         return "Src/Assets/Textures/enemy_normal.png";
-	}
-}
+#include <cmath>
 
 static float EnemyCollisionRadius(GEEnemyType type) {
 	switch (type) {
@@ -23,7 +11,14 @@ static float EnemyCollisionRadius(GEEnemyType type) {
 	}
 }
 
-void GEEnemy::bind(GEContext& ctx) {
+void GEEnemy::configure(GEEnemyType type) {
+	_type = type;
+	_attackCooldown = 0.0f;
+	_stationary = false;
+
+	if (type == GEEnemyType::StaticShooter) {
+		_stationary = true;
+	}
 }
 
 void GEEnemy::applyMovementBounds(float& newX, float& newY) {
@@ -38,23 +33,23 @@ void GEEnemy::applyMovementBounds(float& newX, float& newY) {
     newY = clamp(newY, minCenterY, maxCenterY);
 }
 
-GEEnemy::GEEnemy(GEEnemyType type)
-    : GECharacter(EnemyImagePath(type), GECollisionLayer::Enemy), _enemy(type) {
-    resetForSpawn(type);
+GEEnemy::GEEnemy(GEEnemyType type, const Image& texture)
+    : GECharacter(texture, GECollisionLayer::Enemy), _type(type) {
+    resetForSpawn(type, texture);
 }
 
-void GEEnemy::resetForSpawn(GEEnemyType type) {
-    if (_enemy.getType() != type) {
-        loadSprite(EnemyImagePath(type));
+void GEEnemy::resetForSpawn(GEEnemyType type, const Image& texture) {
+    if (_type != type) {
+        setSprite(texture);
     }
-    _enemy.configure(type);
+    configure(type);
     setCircleCollider(EnemyCollisionRadius(type));
     stopSpriteAnimation(true);
     setContactDamageCooldownDuration(0.5f);
 	_damageFlashTimer = 0.0f;
 	_contactDamageCooldownTimer = 0.0f;
 
-	switch (_enemy.getType()) {
+	switch (_type) {
     case GEEnemyType::Normal:
         _hp = 200;
         _speed = 150;
@@ -78,8 +73,9 @@ void GEEnemy::resetForSpawn(GEEnemyType type) {
     }
 }
 
-void GEEnemy::spawn(GEEnemyType type, float centerX, float centerY, int mapWidth, int mapHeight, bool infiniteMap) {
-    resetForSpawn(type);
+void GEEnemy::spawn(GEEnemyType type, const Image& texture,
+    float centerX, float centerY, int mapWidth, int mapHeight, bool infiniteMap) {
+    resetForSpawn(type, texture);
     setMapBounds(infiniteMap ? -1 : mapWidth, infiniteMap ? -1 : mapHeight);
     setCenter(centerX, centerY);
 }
@@ -92,7 +88,7 @@ void GEEnemy::update(float deltaTime, float playerCenterX, float playerCenterY, 
 
     if (!isAlive()) return;
 
-    if (!_enemy.isStationary()) {
+    if (!_stationary) {
         const float dx = playerCenterX - getCenterX();
         const float dy = playerCenterY - getCenterY();
 
@@ -101,13 +97,36 @@ void GEEnemy::update(float deltaTime, float playerCenterX, float playerCenterY, 
         }
         return;
     }
-    GEEnemyRangedAttackSystem::update(
-        _enemy,
-        transformComponent(),
-        playerCenterX,
-        playerCenterY,
-        deltaTime,
-        projectileProvider);
+    updateRangedAttack(deltaTime, playerCenterX, playerCenterY, projectileProvider);
+}
+
+void GEEnemy::updateRangedAttack(float deltaTime,
+    float playerCenterX,
+    float playerCenterY,
+    ProjectileProvider& projectileProvider) {
+    if (!_stationary) return;
+
+    _attackCooldown += deltaTime;
+    if (_attackCooldown < Enemy::RANGED_ATTACK_INTERVAL) return;
+    _attackCooldown = 0.0f;
+
+    const float centerX = getCenterX();
+    const float centerY = getCenterY();
+    float dirX = playerCenterX - centerX;
+    float dirY = playerCenterY - centerY;
+    const float length = std::sqrt(dirX * dirX + dirY * dirY);
+    if (length == 0.0f) return;
+
+    dirX /= length;
+    dirY /= length;
+    projectileProvider.addProjectile(
+        ProjectileOwner::FromEnemy,
+        centerX,
+        centerY,
+        dirX,
+        dirY,
+        Projectile::MOVE_SPEED,
+        100);
 }
 
 void GEEnemy::draw(Window& window, const GECamera& camera) const {
@@ -122,19 +141,20 @@ void GEEnemy::takeDamage(int value) {
 
 GEEnemyState GEEnemy::snapshotState() const {
     GEEnemyState state;
-    state.type = _enemy.getType();
+    state.type = _type;
     state.centerX = getCenterX();
     state.centerY = getCenterY();
     state.hp = _hp;
     state.maxHp = _maxHp;
-    state.attackCooldown = _enemy.getAttackCooldown();
-    state.activate();
+    state.attackCooldown = _attackCooldown;
+    state.contactDamageCooldownTimer = _contactDamageCooldownTimer;
     return state;
 }
 
 void GEEnemy::applyState(const GEEnemyState& state) {
     if (state.maxHp > 0) setMaxHP(state.maxHp);
     setCurrentHP(state.hp);
-    _enemy.setAttackCooldown(state.attackCooldown);
+    _attackCooldown = state.attackCooldown;
+    _contactDamageCooldownTimer = max(0.0f, state.contactDamageCooldownTimer);
     setCenter(state.centerX, state.centerY);
 }

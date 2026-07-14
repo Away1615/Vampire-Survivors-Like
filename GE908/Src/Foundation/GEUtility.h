@@ -1,5 +1,5 @@
 #pragma once
-#include <random>
+#include <cstdint>
 
 static float clamp(float value, float minVal, float maxVal) {
 	if (value < minVal) return minVal;
@@ -7,10 +7,18 @@ static float clamp(float value, float minVal, float maxVal) {
 	return value;
 }
 
-static float randomFloat(float from = 0.0f, float to = 1.0f) {
-    static std::mt19937 gen(std::random_device{}());
-    std::uniform_real_distribution<float> dist(from, to);
-    return dist(gen);
+static uint32_t nextRandom(uint32_t& state) {
+    state = state * 1664525u + 1013904223u;
+    return state;
+}
+
+static int randomIndex(uint32_t& state, int upperBound) {
+    return static_cast<int>(nextRandom(state) % static_cast<uint32_t>(upperBound));
+}
+
+static float randomFloat(uint32_t& state, float from = 0.0f, float to = 1.0f) {
+    const float unit = static_cast<float>(nextRandom(state) & 0x00FFFFFFu) / 16777216.0f;
+    return from + (to - from) * unit;
 }
 
 

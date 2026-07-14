@@ -5,22 +5,29 @@
 #include "../../Foundation/GECollisible.h"
 #include "../../Foundation/GEModel.h"
 
+class GEGameResources;
+
+// Manages projectile lifetime and collisions.
 class GEProjectileManager : public ProjectileProvider {
 
 private:
+    const GEGameResources& _resources;
     GEObjectPool<GEProjectile*> _projectiles;
 
 public:
-    GEProjectileManager();
+    explicit GEProjectileManager(const GEGameResources& resources);
     ~GEProjectileManager();
 
-    void load(GEMapData* mapData);
     void reset() override;
 
     void addProjectile(ProjectileOwner from, float startPointX, float startPointY,
         float dirX, float dirY, float speed, int damage);
 
-    void update(float deltaTime, GEContext& ctx);
+    void update(float deltaTime,
+        PlayerProvider& playerProvider,
+        EnemyProvider& enemyProvider,
+        PowerUpProvider& powerUpProvider,
+        const GECamera& camera) override;
     void draw(Window& window, const GECamera& camera);
 
     GEProjectileManagerState snapshotState() const override;

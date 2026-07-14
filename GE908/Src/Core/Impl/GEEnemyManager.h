@@ -4,10 +4,15 @@
 #include "../../Foundation/GEObjectPool.h"
 #include "../../Foundation/GEUtility.h"
 #include "../Interface/GEProvider.h"
+#include <cstdint>
 #include <vector>
 
+class GEGameResources;
+
+// Manages active enemies and defeat settlement.
 class GEEnemyManager : public EnemyProvider {
 private:
+    const GEGameResources& _resources;
     GEObjectPool<GEEnemy*> _enemies;
     std::vector<GEEnemy*> _activeEnemies;
 
@@ -15,16 +20,17 @@ private:
     float _spawnInterval = Enemy::DEFAULT_SPAWN_INTERVAL;
     float _difficultyTimer = 0.0f;
     float _elapsedTime = 0.0f;
+    uint32_t _randomState = 1u;
 
     int _killCounts[Enemy::ENEMY_TYPE_COUNT] = { 0 };
     GEMapData* _mapData = nullptr;
 
     bool spawnEnemyOutsideCamera(PlayerProvider& player);
     void rebuildActiveEnemies();
-    void removeEnemy(GEEnemy* enemy);
+    void recordEnemyKill(GEEnemyType type);
 
 public:
-    GEEnemyManager();
+    explicit GEEnemyManager(const GEGameResources& resources);
     ~GEEnemyManager();
 
     int getEnemyCount() const { return static_cast<int>(_activeEnemies.size()); }
@@ -34,10 +40,13 @@ public:
 
     void load(GEMapData* mapData);
     void reset() override;
-    void update(float deltaTime, GEContext& ctx);
+    void update(float deltaTime,
+        PlayerProvider& playerProvider,
+        ProjectileProvider& projectileProvider,
+        PowerUpProvider& powerUpProvider) override;
     void draw(Window& window, const GECamera& camera);
 
-    void registerEnemyKill(GEEnemyType type);
+    bool settleEnemyDefeat(GEEnemy& enemy, PowerUpProvider& powerUpProvider) override;
     void resetKillCounts();
     int getKillCount(GEEnemyType type) const;
 

@@ -4,6 +4,7 @@
 #include <vector>
 #include "GESaveTypes.h"
 
+// Manages save files and metadata.
 class GESaveRepository {
 private:
     std::filesystem::path _saveDirectory;

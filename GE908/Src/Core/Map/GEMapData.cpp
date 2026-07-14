@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <fstream>
+#include <random>
 #include <sstream>
 
 GEMapData::~GEMapData() {
@@ -82,6 +83,7 @@ bool GEMapData::worldToChunkIndices(
 }
 
 uint32_t GEMapData::hashCoordinates(int worldRow, int worldCol) const {
+    // Keep infinite tiles deterministic.
     const uint32_t prime = 101u;
     uint32_t hash = _randomSeed;
     hash = hash * prime + worldRow;
@@ -238,7 +240,7 @@ bool GEMapData::load(const std::string& filename, GEMapMode mapMode) {
     if (_chunkColumns <= 0 || _chunkRows <= 0) _infiniteMap = false;
 
     if (_infiniteMap && !_hasRandomSeed) {
-        _randomSeed = static_cast<uint32_t>(std::rand());
+        _randomSeed = std::random_device{}();
         _hasRandomSeed = true;
     }
 

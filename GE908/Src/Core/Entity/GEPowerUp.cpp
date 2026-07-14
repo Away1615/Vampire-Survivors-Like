@@ -1,59 +1,49 @@
 #include "GEPowerUp.h"
 
-GEPowerUp::GEPowerUp()
-    : GECollisible(PowerUp::ATTACK_SPEED_TEXTURE, GECollisionLayer::PowerUp) {
+GEPowerUp::GEPowerUp(const Image& texture)
+    : GECollisible(texture, GECollisionLayer::PowerUp) {
     setCircleCollider(PowerUp::COLLISION_RADIUS);
 }
 
-void GEPowerUp::spawn(GEPowerUpType type, float centerX, float centerY, float lifeTimeSeconds) {
+void GEPowerUp::spawn(GEPowerUpType type, const Image& texture,
+    float centerX, float centerY, float lifeTimeSeconds) {
     const bool typeChanged = (getType() != type);
-    _powerUp.spawn(type, lifeTimeSeconds);
+    _type = type;
+    _timeToLive = lifeTimeSeconds;
+    _remainingTime = lifeTimeSeconds;
+    _active = true;
 
-    switch (getType()) {
-    case GEPowerUpType::AttackSpeedBoost:
-        if (typeChanged) loadSprite(PowerUp::ATTACK_SPEED_TEXTURE);
-        break;
-    case GEPowerUpType::AdditionalAoeTarget:
-        if (typeChanged) loadSprite(PowerUp::AOE_TARGET_TEXTURE);
-        break;
-    case GEPowerUpType::HealPlayer:
-        if (typeChanged) loadSprite(PowerUp::HEAL_TEXTURE);
-        break;
-    default:
-        break;
-    }
+    if (typeChanged) setSprite(texture);
 
     setCenter(centerX, centerY);
 }
 
+void GEPowerUp::update(float deltaTime) {
+    if (!_active || _timeToLive <= 0.0f) return;
+
+    _remainingTime -= deltaTime;
+    if (_remainingTime <= 0.0f) deactivate();
+}
+
+void GEPowerUp::deactivate() {
+    _active = false;
+    _remainingTime = 0.0f;
+}
+
 GEPowerUpState GEPowerUp::snapshotState() const {
     GEPowerUpState state;
-    state.type = _powerUp.getType();
+    state.type = _type;
     state.centerX = getCenterX();
     state.centerY = getCenterY();
-    state.timeToLive = _powerUp.getTimeToLive();
-    state.remainingTime = _powerUp.getRemainingTime();
-    if (_powerUp.isActive()) state.activate();
-    else state.deactivate();
+    state.timeToLive = _timeToLive;
+    state.remainingTime = _remainingTime;
     return state;
 }
 
 void GEPowerUp::applyState(const GEPowerUpState& state) {
-    _powerUp.restore(state.type, state.remainingTime, state.timeToLive, state.isActiveElement());
-
-    switch (_powerUp.getType()) {
-    case GEPowerUpType::AttackSpeedBoost:
-        loadSprite(PowerUp::ATTACK_SPEED_TEXTURE);
-        break;
-    case GEPowerUpType::AdditionalAoeTarget:
-        loadSprite(PowerUp::AOE_TARGET_TEXTURE);
-        break;
-    case GEPowerUpType::HealPlayer:
-        loadSprite(PowerUp::HEAL_TEXTURE);
-        break;
-    default:
-        break;
-    }
-
+    _type = state.type;
+    _remainingTime = state.remainingTime;
+    _timeToLive = state.timeToLive;
+    _active = true;
     setCenter(state.centerX, state.centerY);
 }

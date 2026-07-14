@@ -1,6 +1,5 @@
 #pragma once
 #include "GECharacter.h"
-#include "GETile.h"
 #include "../../Foundation/GEConst.h"
 #include "../Interface/GEProvider.h"
 #include "../../Foundation/GECamera.h"
@@ -13,6 +12,17 @@ class GEEnemy;
 class GEPlayer : public GECharacter, public PlayerProvider {
 
 private:
+	enum class WalkDirection {
+		Front,
+		Back,
+		Side,
+	};
+
+	const Image& _frontWalkTexture;
+	const Image& _backWalkTexture;
+	const Image& _sideWalkTexture;
+	WalkDirection _walkDirection = WalkDirection::Front;
+
 	GEMapData* _mapData = nullptr;
 	MapProvider* _mapsManager = nullptr;
 	EnemyProvider* _enemyManager = nullptr;
@@ -26,6 +36,9 @@ private:
 
 	bool isBlockedAt(float x, float y) const;
 
+	void setWalkSprite(const Image& texture);
+	void setWalkDirection(WalkDirection direction);
+	void updateWalkAnimation(float dirX, float dirY);
 	void applyEnvironmentalEffects(float deltaTime);
 
 	void applyMovementBounds(float& newX, float& newY) override;
@@ -34,13 +47,18 @@ private:
 
 public:
 
-	GEPlayer();
+	GEPlayer(const Image& frontWalkTexture,
+		const Image& backWalkTexture,
+		const Image& sideWalkTexture);
 
 	~GEPlayer() = default;
 
 	void reset() override;
 
-	void bind(GEContext& ctx) override;
+	void bind(MapProvider& mapProvider,
+		EnemyProvider& enemyProvider,
+		ProjectileProvider& projectileProvider,
+		PowerUpProvider& powerUpProvider) override;
 
 	void update(float deltaTime, Window& window);
 

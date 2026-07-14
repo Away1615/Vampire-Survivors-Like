@@ -1,18 +1,27 @@
 ﻿#include "GEPlayer.h"
-#include "../GEContext.h"
 #include "../Map/GEMapData.h"
 #include "../../Foundation/GEDebug.h"
 #include "GEEnemy.h"
 #include "../System/GEPlayerCombatSystem.h"
 #include <cmath>
 
-GEPlayer::GEPlayer()
-    : GECharacter(Player::playerSpriteFilePath, GECollisionLayer::Player) {
+GEPlayer::GEPlayer(const Image& frontWalkTexture,
+    const Image& backWalkTexture,
+    const Image& sideWalkTexture)
+    : GECharacter(frontWalkTexture, GECollisionLayer::Player),
+    _frontWalkTexture(frontWalkTexture),
+    _backWalkTexture(backWalkTexture),
+    _sideWalkTexture(sideWalkTexture) {
     setCircleCollider(Player::COLLISION_RADIUS);
     reset();
 }
 
 void GEPlayer::reset() {
+    _walkDirection = WalkDirection::Front;
+    setWalkSprite(_frontWalkTexture);
+    setSpriteFlipHorizontal(false);
+    setSpriteDrawOffsetX(Player::FRONT_BACK_WALK_DRAW_OFFSET_X);
+    setSpriteDrawOffsetY(Player::WALK_DRAW_OFFSET_Y);
     stopSpriteAnimation(true);
     _mapData = nullptr;
     _mapsManager = nullptr;
@@ -21,7 +30,7 @@ void GEPlayer::reset() {
     _powerUpManager = nullptr;
 
     _hp = 500;
-    _speed = 300;
+    _speed = Player::MOVE_SPEED;
     _maxHp = _hp;
     _mapWidth = 0;
     _mapHeight = 0;
@@ -33,16 +42,72 @@ void GEPlayer::reset() {
     setCenter(0.0f, 0.0f);
 }
 
-void GEPlayer::bind(GEContext& ctx) {
-    _mapsManager = &ctx.mapProvider();
-    _enemyManager = &ctx.enemyProvider();
-    _projectileManager = &ctx.projectileProvider();
-    _powerUpManager = &ctx.powerupProvider();
+void GEPlayer::setWalkSprite(const Image& texture) {
+    const int frameWidth = static_cast<int>(texture.width) / Player::WALK_FRAME_COUNT;
+    setSpriteSheet(texture, frameWidth, static_cast<int>(texture.height));
+}
+
+void GEPlayer::setWalkDirection(WalkDirection direction) {
+    if (_walkDirection == direction) return;
+    _walkDirection = direction;
+
+    switch (direction) {
+    case WalkDirection::Front:
+        setWalkSprite(_frontWalkTexture);
+        break;
+    case WalkDirection::Back:
+        setWalkSprite(_backWalkTexture);
+        break;
+    case WalkDirection::Side:
+        setWalkSprite(_sideWalkTexture);
+        break;
+    }
+}
+
+void GEPlayer::updateWalkAnimation(float dirX, float dirY) {
+    if (dirX == 0.0f && dirY == 0.0f) {
+        stopSpriteAnimation(true);
+        return;
+    }
+
+    if (dirX != 0.0f) {
+        setWalkDirection(WalkDirection::Side);
+        const bool facingLeft = dirX < 0.0f;
+        setSpriteFlipHorizontal(facingLeft);
+        setSpriteDrawOffsetX(facingLeft
+            ? -Player::SIDE_WALK_DRAW_OFFSET_X
+            : Player::SIDE_WALK_DRAW_OFFSET_X);
+    }
+    else if (dirY < 0.0f) {
+        setWalkDirection(WalkDirection::Back);
+        setSpriteFlipHorizontal(false);
+        setSpriteDrawOffsetX(Player::FRONT_BACK_WALK_DRAW_OFFSET_X);
+    }
+    else {
+        setWalkDirection(WalkDirection::Front);
+        setSpriteFlipHorizontal(false);
+        setSpriteDrawOffsetX(Player::FRONT_BACK_WALK_DRAW_OFFSET_X);
+    }
+
+    playSpriteAnimation(GESpriteAnimationClip(
+        0,
+        Player::WALK_FRAME_COUNT,
+        Player::WALK_FRAMES_PER_SECOND,
+        true));
+}
+
+void GEPlayer::bind(MapProvider& mapProvider,
+    EnemyProvider& enemyProvider,
+    ProjectileProvider& projectileProvider,
+    PowerUpProvider& powerUpProvider) {
+    _mapsManager = &mapProvider;
+    _enemyManager = &enemyProvider;
+    _projectileManager = &projectileProvider;
+    _powerUpManager = &powerUpProvider;
 
     if (_mapsManager) {
         _mapData = _mapsManager->getMapData();
         if (_mapData) {
-            loadSprite(Player::playerSpriteFilePath);
             int chunkPixelW = _mapData->getChunkPixelWidth();
             int chunkPixelH = _mapData->getChunkPixelHeight();
             if (chunkPixelW <= 0) chunkPixelW = getWidth() * 4;
@@ -67,7 +132,6 @@ void GEPlayer::bind(GEContext& ctx) {
 
 void GEPlayer::update(float deltaTime, Window& window) {
     updateCharacterState(deltaTime);
-    updateSpriteAnimation(deltaTime);
     _player.updateBuffs(deltaTime);
 
     float dirX = 0.0f;
@@ -80,6 +144,8 @@ void GEPlayer::update(float deltaTime, Window& window) {
 
     if (window.keyPressed('Q')) _player.requestAoe();
 
+    updateWalkAnimation(dirX, dirY);
+    updateSpriteAnimation(deltaTime);
     moveUpdate(deltaTime, dirX, dirY);
 
     GEPlayerCombatSystem::update(
@@ -300,6 +366,8 @@ GEPlayerState GEPlayer::snapshotState() const {
     state.aoeCooldownTimer = _player.getAoeCooldownTimer();
     state.aoeCooldown = _player.getAoeCooldown();
     state.contactDamageCooldownTimer = _contactDamageCooldownTimer;
+    state.wasInFire = _player.wasInFire();
+    state.fireTimer = _player.getFireTimer();
     state.aoeTargetCount = _player.getAoeTargetCount();
     state.aoeKeyHeld = _player.isAoeRequested();
     state.aoeTargetBuffTimer = _player.getAoeTargetBuffTimer();
@@ -320,6 +388,8 @@ void GEPlayer::applyState(const GEPlayerState& state) {
         state.aoeTargetCount,
         state.aoeKeyHeld,
         state.aoeTargetBuffTimer);
+    _player.setWasInFire(state.wasInFire);
+    _player.setFireTimer(max(0.0f, state.fireTimer));
 
     float newX = state.centerX;
     float newY = state.centerY;

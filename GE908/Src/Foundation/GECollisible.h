@@ -11,25 +11,37 @@
 
 using namespace GamesEngineeringBase;
 	
+// Combines transform, sprite, and collision state.
 class GECollisible {
 
 private:
 	GETransformComponent _transform;
 	GESpriteComponent _sprite;
 	GEColliderComponent _collider;
+	float _spriteDrawOffsetX = 0.0f;
+	float _spriteDrawOffsetY = 0.0f;
 
 protected:
-	bool loadSprite(const std::string& filename) {
-		return _sprite.load(filename);
+	void setSprite(const Image& image) {
+		_sprite.setImage(image);
 	}
 
-	bool loadSpriteSheet(const std::string& filename, int frameWidth, int frameHeight) {
-		return _sprite.loadSpriteSheet(filename, frameWidth, frameHeight);
+	bool setSpriteSheet(const Image& image, int frameWidth, int frameHeight) {
+		return _sprite.setSpriteSheet(image, frameWidth, frameHeight);
 	}
 
 	bool playSpriteAnimation(const GESpriteAnimationClip& animation, bool restart = false) {
 		return _sprite.play(animation, restart);
 	}
+
+	void setSpriteFlipHorizontal(bool flipHorizontal) {
+		_sprite.setFlipHorizontal(flipHorizontal);
+	}
+
+	void setSpriteDrawOffsetX(float offsetX) { _spriteDrawOffsetX = offsetX; }
+	float getSpriteDrawOffsetX() const { return _spriteDrawOffsetX; }
+	void setSpriteDrawOffsetY(float offsetY) { _spriteDrawOffsetY = offsetY; }
+	float getSpriteDrawOffsetY() const { return _spriteDrawOffsetY; }
 
 	void updateSpriteAnimation(float deltaTime) { _sprite.update(deltaTime); }
 	void stopSpriteAnimation(bool resetToFirstFrame = false) { _sprite.stop(resetToFirstFrame); }
@@ -45,9 +57,9 @@ protected:
 
 public:
 
-	GECollisible(const std::string& filename, GECollisionLayer collisionLayer)
+	GECollisible(const Image& image, GECollisionLayer collisionLayer)
 		: _collider(collisionLayer) {
-		loadSprite(filename);
+		setSprite(image);
 	}
 
 	virtual ~GECollisible() = default;
@@ -68,7 +80,6 @@ public:
     const GESpriteComponent& spriteComponent() const { return _sprite; }
     const GEColliderComponent& colliderComponent() const { return _collider; }
 
-    // draw collider's image
 	virtual void draw(Window& window, const GECamera& camera) const {
 		const float camX = camera.getX();
 		const float camY = camera.getY();
@@ -76,11 +87,13 @@ public:
 		int winH = window.getHeight();
 
 		for (int dy = 0; dy < _sprite.getHeight(); ++dy) {
-			const int screenY = static_cast<int>(getOriginY() + dy - camY);
+			const int screenY = static_cast<int>(
+				getOriginY() + _spriteDrawOffsetY + dy - camY);
 			if (screenY < 0 || screenY >= winH) continue;
 
 			for (int dx = 0; dx < _sprite.getWidth(); ++dx) {
-				const int screenX = static_cast<int>(getOriginX() + dx - camX);
+				const int screenX = static_cast<int>(
+					getOriginX() + _spriteDrawOffsetX + dx - camX);
 				if (screenX < 0 || screenX >= winW) continue;
 
 				if (_sprite.alphaAtUnchecked(dx, dy) > 0)
@@ -91,7 +104,7 @@ public:
 		drawCollisionBoxIfNeeded(window, camera);
 	}
 
-    // draw collider's collider box
+    // Draw collision bounds in debug mode.
     virtual void drawCollisionBoxIfNeeded(Window& window, const GECamera& camera) const {
 
 		if (!GEDebug::shared().needDrawCollisionBounds()
@@ -170,7 +183,7 @@ public:
 
     }
    
-	// check if this collider collide with another right now
+	// Test overlap at the current position.
 	bool collide(const GECollisible& other) const {
 		return GECollisionQuery::overlaps(
 			_transform,
@@ -179,7 +192,7 @@ public:
 			other._collider);
 	}
 
-	// check if this collider would collide with another when placed at position (cx, cy), without actually moving it
+	// Test overlap without moving this object.
 	bool collideAt(float cx, float cy, const GECollisible& other) const {
 		return GECollisionQuery::overlaps(
 			cx,

@@ -5,6 +5,7 @@
 #include "MapChunk.h"
 #include "../../Foundation/GEModel.h"
 
+// Stores map layout and runtime chunk state.
 class GEMapData {
 private:
     int _tileWidth = 0;

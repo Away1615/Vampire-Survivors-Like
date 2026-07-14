@@ -3,6 +3,7 @@
 #include <filesystem>
 #include "GESaveTypes.h"
 
+// Encodes and decodes save records.
 class GESaveSerializer {
 public:
     static bool write(const std::filesystem::path& filename, const GESaveRecord& record);

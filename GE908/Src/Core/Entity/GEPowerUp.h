@@ -4,22 +4,23 @@
 #include "../../Foundation/GEObjectPool.h"
 #include "../State/GECodable.h"
 #include "../State/GEGameState.h"
-#include "../Component/GEPowerUpComponent.h"
 
 class GEPowerUp : public GECollisible, public GEPoolable, public GECodable<GEPowerUpState> {
 private:
-    GEPowerUpComponent _powerUp;
+    bool _active = false;
+    float _timeToLive = 0.0f;
+    float _remainingTime = 0.0f;
+    GEPowerUpType _type = GEPowerUpType::None;
 
 public:
-    GEPowerUp();
-    void spawn(GEPowerUpType type, float centerX, float centerY, float lifeTimeSeconds);
-    void deactivate() { _powerUp.deactivate(); }
-    bool isAlive() const { return _powerUp.isActive(); }
-    bool isActiveElement() const override { return _powerUp.isActive(); }
-    GEPowerUpType getType() const { return _powerUp.getType(); }
-
-    GEPowerUpComponent& powerUpComponent() { return _powerUp; }
-    const GEPowerUpComponent& powerUpComponent() const { return _powerUp; }
+    explicit GEPowerUp(const Image& texture);
+    void spawn(GEPowerUpType type, const Image& texture,
+        float centerX, float centerY, float lifeTimeSeconds);
+    void update(float deltaTime);
+    void deactivate();
+    bool isAlive() const { return _active; }
+    bool isActiveElement() const override { return _active; }
+    GEPowerUpType getType() const { return _type; }
 
     GEPowerUpState snapshotState() const override;
     void applyState(const GEPowerUpState& state) override;

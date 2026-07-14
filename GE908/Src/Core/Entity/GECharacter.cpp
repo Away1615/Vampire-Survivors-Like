@@ -4,13 +4,11 @@
 void GECharacter::moveUpdate(float deltaTime, float dirX, float dirY) {
     if (dirX == 0 && dirY == 0) return;
 
-    // normalize
     float len = std::sqrt(dirX * dirX + dirY * dirY);
     if (len <= 0.0001f) return;
     dirX /= len;
     dirY /= len;
 
-    // move amount
     float moveDelta = _speed * deltaTime;
     float deltaX = dirX * moveDelta;
     float deltaY = dirY * moveDelta;
@@ -68,13 +66,10 @@ void GECharacter::startContactDamageCooldown() {
 
 void GECharacter::draw(Window& window, const GECamera& camera) const {
 
-    // draw character Image
     GECollisible::draw(window, camera);
 
-    // draw HP
     drawHP(window, camera);
 
-    // Draw Hurt flash
     drawHurt(window, camera);
 }
 
@@ -85,10 +80,19 @@ void GECharacter::drawHP(Window& window, const GECamera& camera) const {
     const int winW = window.getWidth();
     const int winH = window.getHeight();
 
-    const int barWidth = getWidth();
+    const bool isPlayer = getCollisionLayer() == GECollisionLayer::Player;
+    const int barWidth = isPlayer
+        ? static_cast<int>(getCollisionRadius() * 2.0f)
+        : getWidth();
     const int barHeight = 8;
-    const int screenX = static_cast<int>(getOriginX() - camX);
-    const int screenY = static_cast<int>(getOriginY() - camY + getHeight() + 8);
+    const float barOriginX = isPlayer
+        ? getCenterX() - barWidth / 2.0f
+        : getOriginX();
+    const float barBottomY = isPlayer
+        ? getCenterY() + getCollisionRadius()
+        : getOriginY() + getHeight();
+    const int screenX = static_cast<int>(barOriginX - camX);
+    const int screenY = static_cast<int>(barBottomY - camY + 8.0f);
 
     float hpRatio = (_maxHp > 0) ? static_cast<float>(_hp) / _maxHp : 0.0f;
     hpRatio = clamp(hpRatio, 0.0f, 1.0f);
@@ -96,20 +100,17 @@ void GECharacter::drawHP(Window& window, const GECamera& camera) const {
     if (screenX + barWidth < 0 || screenY + barHeight < 0 || screenX >= winW || screenY >= winH)
         return;
 
-    // clamp to window bounds
     int left = max(0, screenX);
     int right = min(winW, screenX + barWidth);
     int top = max(0, screenY);
     int bottom = min(winH, screenY + barHeight);
 
-    // draw background
     for (int y = top; y < bottom; ++y) {
         for (int x = left; x < right; ++x) {
             window.draw(x, y, 60, 60, 60);
         }
     }
 
-    // draw filled portion
     const int filledWidth = static_cast<int>((right - left) * hpRatio);
     for (int y = top; y < bottom; ++y) {
         for (int x = left; x < left + filledWidth; ++x) {
@@ -130,11 +131,13 @@ void GECharacter::drawHurt(Window& window, const GECamera& camera) const {
     int winH = window.getHeight();
 
     for (int dy = 0; dy < getHeight(); ++dy) {
-        const int screenY = static_cast<int>(getOriginY() + dy - camY);
+        const int screenY = static_cast<int>(
+            getOriginY() + getSpriteDrawOffsetY() + dy - camY);
         if (screenY < 0 || screenY >= winH) continue;
 
         for (int dx = 0; dx < getWidth(); ++dx) {
-            const int screenX = static_cast<int>(getOriginX() + dx - camX);
+            const int screenX = static_cast<int>(
+                getOriginX() + getSpriteDrawOffsetX() + dx - camX);
             if (screenX < 0 || screenX >= winW) continue;
 
             if (spriteComponent().alphaAtUnchecked(dx, dy) <= 0) continue;

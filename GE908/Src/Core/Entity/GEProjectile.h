@@ -5,44 +5,50 @@
 #include "../../Foundation/GEConst.h"
 #include "../State/GECodable.h"
 #include "../State/GEGameState.h"
-#include "../Component/GEProjectileComponent.h"
 
 class GEProjectile : public GECollisible, public GEPoolable, public GECodable<GEProjectileState> {
 private:
-    GEProjectileComponent _projectile;
+    float _speed = 0.0f;
+    float _dirX = 0.0f;
+    float _dirY = 0.0f;
+    int _damage = 0;
+    bool _active = false;
+    ProjectileOwner _owner = ProjectileOwner::FromPlayer;
+
+    void activate(ProjectileOwner owner, float dirX, float dirY, float speed, int damage);
 
 public:
-    GEProjectile() : GECollisible(Projectile::PLAYER_PROJECTILE_TEXTURE, GECollisionLayer::Projectile) {
+    explicit GEProjectile(const Image& texture)
+        : GECollisible(texture, GECollisionLayer::Projectile) {
         setCircleCollider(Projectile::COLLISION_RADIUS);
     }
 
-    GEProjectile(const std::string& texturePath, ProjectileOwner owner,
+    GEProjectile(const Image& texture, ProjectileOwner owner,
         float centerX, float centerY, float dirX, float dirY,
         float speed, int damage)
-        : GECollisible(texturePath, GECollisionLayer::Projectile) {
+        : GECollisible(texture, GECollisionLayer::Projectile) {
         setCircleCollider(Projectile::COLLISION_RADIUS);
-        _projectile.spawn(owner, dirX, dirY, speed, damage);
+        activate(owner, dirX, dirY, speed, damage);
         setCenter(centerX, centerY);
     }
 
-    bool isActiveElement() const override { return _projectile.isActive(); }
-    void deactivate() { _projectile.deactivate(); }
+    bool isActiveElement() const override { return _active; }
+    void deactivate() { _active = false; }
 
-    ProjectileOwner getOwner() const { return _projectile.getOwner(); }
-    int getDamage() const { return _projectile.getDamage(); }
+    ProjectileOwner getOwner() const { return _owner; }
+    int getDamage() const { return _damage; }
 
-    void spawn(const std::string& texturePath, ProjectileOwner owner,
+    void spawn(const Image& texture, ProjectileOwner owner,
         float centerX, float centerY, float dirX, float dirY,
         float speed, int damage) {
-        if (_projectile.getOwner() != owner) {
-            loadSprite(texturePath);
+        if (_owner != owner) {
+            setSprite(texture);
         }
-        _projectile.spawn(owner, dirX, dirY, speed, damage);
+        activate(owner, dirX, dirY, speed, damage);
         setCenter(centerX, centerY);
     }
 
-    GEProjectileComponent& projectileComponent() { return _projectile; }
-    const GEProjectileComponent& projectileComponent() const { return _projectile; }
+    void update(float deltaTime);
 
     GEProjectileState snapshotState() const override;
     void applyState(const GEProjectileState& state) override;

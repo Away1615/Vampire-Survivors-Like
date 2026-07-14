@@ -1,5 +1,6 @@
 #pragma once
-#include <utility>
+
+#include <type_traits>
 
 class GEPoolable {
 public:
@@ -7,22 +8,55 @@ public:
     virtual bool isActiveElement() const = 0;
 };
 
-
+// Owns and reuses pooled objects.
 template <typename T>
 class GEObjectPool {
 private:
-    // The pool owns its pointer elements. Inactive objects stay allocated for reuse.
-    T* _data = nullptr;            // data
+    static_assert(std::is_pointer_v<T>, "GEObjectPool owns pointer elements.");
+    static_assert(std::is_base_of_v<GEPoolable, std::remove_pointer_t<T>>,
+        "GEObjectPool elements must implement GEPoolable.");
 
-    unsigned int _size = 0;        // number of slots currently in use
-    unsigned int _capacity = 0;    // nallocated array length
+    T* _data = nullptr;
+    unsigned int _size = 0;
+    unsigned int _capacity = 0;
+
+    void reserveSlots(unsigned int newCapacity) {
+        if (newCapacity <= _capacity) return;
+
+        T* newData = new T[newCapacity]{};
+        for (unsigned int i = 0; i < _size; ++i)
+            newData[i] = _data[i];
+        delete[] _data;
+
+        _data = newData;
+        _capacity = newCapacity;
+    }
+
+    void destroyElements() {
+        for (unsigned int i = 0; i < _size; ++i) {
+            delete _data[i];
+            _data[i] = nullptr;
+        }
+    }
+
+    void release() {
+        destroyElements();
+        delete[] _data;
+        _data = nullptr;
+        _size = 0;
+        _capacity = 0;
+    }
 
 public:
     GEObjectPool() = default;
 
-    explicit GEObjectPool(unsigned int capacity) { reserve(capacity); }
+    explicit GEObjectPool(unsigned int slotCount) {
+        reset(slotCount);
+    }
 
-    ~GEObjectPool() { clear(); }
+    ~GEObjectPool() {
+        release();
+    }
 
     GEObjectPool(const GEObjectPool&) = delete;
     GEObjectPool& operator=(const GEObjectPool&) = delete;
@@ -36,7 +70,7 @@ public:
 
     GEObjectPool& operator=(GEObjectPool&& other) noexcept {
         if (this != &other) {
-            clear();
+            release();
             _data = other._data;
             _size = other._size;
             _capacity = other._capacity;
@@ -47,11 +81,7 @@ public:
         return *this;
     }
 
-    // ======== Basic Function ========
-
     unsigned int size() const { return _size; }
-
-    unsigned int capacity() const { return _capacity; }
 
     unsigned int countActive() const {
         unsigned int count = 0;
@@ -60,13 +90,9 @@ public:
         return count;
     }
 
-    bool empty() const { return countActive() == 0; }
-
-    T& operator[](unsigned int i) { return _data[i]; }
-    const T& operator[](unsigned int i) const { return _data[i]; }
-
-    T* data() { return _data; }
-    const T* data() const { return _data; }
+    T getAt(unsigned int index) const {
+        return index < _size ? _data[index] : nullptr;
+    }
 
     T findInactive() const {
         for (unsigned int i = 0; i < _size; ++i) {
@@ -75,74 +101,25 @@ public:
         return nullptr;
     }
 
-    // ======== Memory management ========
-
-    void reserve(unsigned int new_capacity) {
-        if (new_capacity <= _capacity) return;
-
-        T* new_data = new T[new_capacity];
-        for (unsigned int i = 0; i < _size; ++i)
-            new_data[i] = _data[i];
-        delete[] _data;
-
-        _data = new_data;
-        _capacity = new_capacity;
-    }
-
-    void resize(unsigned int new_size) {
-        if (new_size > _capacity)
-            reserve(new_size);
-        // fill new slots with nullptr
-        for (unsigned int i = _size; i < new_size; ++i)
-            _data[i] = nullptr;
-        _size = new_size;
-    }
-
-    // ======== Core API ========
-
-    void add(const T& value) {
-        // reuse empty slot if available
-        for (unsigned int i = 0; i < _size; ++i)
-            if (_data[i] == nullptr) {
+    // The pool takes ownership.
+    void add(T value) {
+        for (unsigned int i = 0; i < _size; ++i) {
+            if (!_data[i]) {
                 _data[i] = value;
                 return;
             }
+        }
 
-        // otherwise append
         if (_size >= _capacity)
-            reserve((_capacity == 0) ? 4 : _capacity * 2);
-
+            reserveSlots(_capacity == 0 ? 4 : _capacity * 2);
         _data[_size++] = value;
     }
 
-    void remove(const T& value) {
-        for (unsigned int i = 0; i < _size; ++i)
-            if (_data[i] == value) {
-                _data[i] = nullptr;
-                return;
-            }
-    }
-
-    void clear() {
-        destroyAll();
-        delete[] _data;
-        _data = nullptr;
-        _size = 0;
-        _capacity = 0;
-    }
-
-    void destroyAll() {
-        for (unsigned int i = 0; i < _size; ++i) {
-            if (_data[i]) {
-                delete _data[i];
-                _data[i] = nullptr;
-            }
-        }
-    }
-
-    void fillNull(unsigned int count) {
-        resize(count);
-        for (unsigned int i = 0; i < count; ++i)
+    void reset(unsigned int slotCount) {
+        destroyElements();
+        reserveSlots(slotCount);
+        for (unsigned int i = 0; i < slotCount; ++i)
             _data[i] = nullptr;
+        _size = slotCount;
     }
 };

@@ -1,17 +1,15 @@
 #include "GEPowerUpManager.h"
-#include "../GEContext.h"
-#include "../System/GEPowerUpLifetimeSystem.h"
-#include <cstdlib>
+#include "../Resource/GEGameResources.h"
+#include "../../Foundation/GEUtility.h"
 #include <ctime>
 
-GEPowerUpManager::GEPowerUpManager() {
-    _powerUps.fillNull(PowerUp::MAX_POWERUPS);
+GEPowerUpManager::GEPowerUpManager(const GEGameResources& resources)
+    : _resources(resources),
+    _randomState(static_cast<uint32_t>(std::time(nullptr)) ^ 0xA511E9B3u) {
+    _powerUps.reset(PowerUp::MAX_POWERUPS);
 }
 
-GEPowerUpManager::~GEPowerUpManager() {
-    _powerUps.destroyAll();
-    _powerUps.clear();
-}
+GEPowerUpManager::~GEPowerUpManager() = default;
 
 void GEPowerUpManager::load(GEMapData* mapData) {
     reset();
@@ -20,54 +18,46 @@ void GEPowerUpManager::load(GEMapData* mapData) {
 
 void GEPowerUpManager::reset() {
     _mapData = nullptr;
-    _spawnTimer = 0.0f;
-    _powerUps.destroyAll();
-    _powerUps.fillNull(PowerUp::MAX_POWERUPS);
+    _powerUps.reset(PowerUp::MAX_POWERUPS);
 }
 
 void GEPowerUpManager::spawnPowerUpAt(const GEPoint& point) {
-    // Random drop chance
-    if (randomFloat(0.0f, 1.0f) > PowerUp::DROP_CHANCE) return;
+    if (randomFloat(_randomState, 0.0f, 1.0f) > PowerUp::DROP_CHANCE) return;
 
-    float offsetX = randomFloat(-20.0f, 20.0f);
-    float offsetY = randomFloat(-20.0f, 20.0f);
+    float offsetX = randomFloat(_randomState, -20.0f, 20.0f);
+    float offsetY = randomFloat(_randomState, -20.0f, 20.0f);
     float spawnX = point.x + offsetX;
     float spawnY = point.y + offsetY;
 
-    float randomN = randomFloat(0.0f, 1.0f);
+    float randomN = randomFloat(_randomState, 0.0f, 1.0f);
 
     GEPowerUpType type = GEPowerUpType::AttackSpeedBoost;
     if (randomN < 0.33) type = GEPowerUpType::AttackSpeedBoost;
     if (randomN >= 0.33 && randomN <= 0.66) type = GEPowerUpType::AdditionalAoeTarget;
     if (randomN > 0.66) type = GEPowerUpType::HealPlayer;
 
-    // Try to reuse inactive slot
+    // Reuse inactive power-ups.
+    const Image& texture = _resources.powerUpTexture(type);
     for (unsigned int i = 0; i < _powerUps.size(); ++i) {
-        if (_powerUps[i] == nullptr) {
-            _powerUps[i] = new GEPowerUp();
+        GEPowerUp* powerUp = _powerUps.getAt(i);
+        if (!powerUp) {
+            powerUp = new GEPowerUp(texture);
+            _powerUps.add(powerUp);
         }
-        if (!_powerUps[i]->isAlive()) {
-            _powerUps[i]->spawn(type, spawnX, spawnY, PowerUp::POWERUP_LIFETIME_SECONDS);
+        if (!powerUp->isAlive()) {
+            powerUp->spawn(type, texture, spawnX, spawnY, PowerUp::POWERUP_LIFETIME_SECONDS);
             return;
         }
     }
 }
 
-void GEPowerUpManager::update(float deltaTime, GEContext& ctx) {
+void GEPowerUpManager::update(float deltaTime, PlayerProvider& player) {
     if (!_mapData) return;
 
-    _spawnTimer += deltaTime;
-    if (_spawnTimer >= PowerUp::SPAWN_INTERVAL_SECONDS) {
-        _spawnTimer = 0.0f;
-        // could spawn periodic global pickups here if desired
-    }
-
-    PlayerProvider& player = ctx.playerProvider();
-
     for (unsigned int i = 0; i < _powerUps.size(); ++i) {
-        GEPowerUp* p = _powerUps[i];
+        GEPowerUp* p = _powerUps.getAt(i);
         if (!p || !p->isAlive()) continue;
-        GEPowerUpLifetimeSystem::update(p->powerUpComponent(), deltaTime);
+        p->update(deltaTime);
 
         if (p->isAlive() && p->collide(player.collisionBody())) {
             player.applyPowerUp(p->getType());
@@ -79,7 +69,7 @@ void GEPowerUpManager::update(float deltaTime, GEContext& ctx) {
 
 void GEPowerUpManager::draw(Window& window, const GECamera& camera) {
     for (unsigned int i = 0; i < _powerUps.size(); ++i) {
-        GEPowerUp* p = _powerUps[i];
+        GEPowerUp* p = _powerUps.getAt(i);
         if (p && p->isAlive())
             p->draw(window, camera);
     }
@@ -91,9 +81,9 @@ void GEPowerUpManager::onEnemyDefeated(const GEPoint& position) {
 
 GEPowerUpManagerState GEPowerUpManager::snapshotState() const {
     GEPowerUpManagerState state;
-    state.spawnTimer = _spawnTimer;
+    state.randomState = _randomState;
     for (unsigned int i = 0; i < _powerUps.size(); ++i) {
-        GEPowerUp* powerUp = _powerUps[i];
+        GEPowerUp* powerUp = _powerUps.getAt(i);
         if (!powerUp || !powerUp->isAlive()) continue;
         GEPowerUpState powerUpState = powerUp->snapshotState();
         state.addPowerUpState(powerUpState);
@@ -102,15 +92,14 @@ GEPowerUpManagerState GEPowerUpManager::snapshotState() const {
 }
 
 void GEPowerUpManager::applyState(const GEPowerUpManagerState& state) {
-    _spawnTimer = state.spawnTimer;
-    _powerUps.destroyAll();
-    _powerUps.fillNull(PowerUp::MAX_POWERUPS);
+    _randomState = state.randomState;
+    _powerUps.reset(PowerUp::MAX_POWERUPS);
 
     for (unsigned int i = 0; i < state.powerUps.size(); ++i) {
-        GEPowerUpState* powerUpState = state.powerUps[i];
-        if (!powerUpState || !powerUpState->isActiveElement()) continue;
-        GEPowerUp* powerUp = new GEPowerUp();
-        powerUp->applyState(*powerUpState);
+        const GEPowerUpState& powerUpState = state.powerUps[i];
+        GEPowerUp* powerUp = new GEPowerUp(
+            _resources.powerUpTexture(powerUpState.type));
+        powerUp->applyState(powerUpState);
         _powerUps.add(powerUp);
     }
 }

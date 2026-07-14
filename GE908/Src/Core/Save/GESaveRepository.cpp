@@ -40,7 +40,7 @@ namespace {
     std::string formatDisplayTime(int64_t timestamp) {
         const std::tm time = localTime(timestamp);
         std::ostringstream stream;
-        stream << "Save " << std::put_time(&time, "%Y-%m-%d %H:%M:%S");
+        stream << std::put_time(&time, "%Y-%m-%d %H:%M:%S");
         return stream.str();
     }
 
@@ -107,9 +107,7 @@ bool GESaveRepository::save(GESaveRecord& record) const {
     if (record.metadata.id.empty()) {
         record.metadata.id = createId(now);
     }
-    if (record.metadata.displayName.empty()) {
-        record.metadata.displayName = formatDisplayTime(now);
-    }
+    record.metadata.displayName = formatDisplayTime(now);
     record.metadata.updatedAt = now;
     record.metadata.mapMode = record.snapshot.map.mapMode;
     record.metadata.levelTimeRemaining = record.snapshot.map.levelTimeRemaining;
@@ -123,6 +121,7 @@ bool GESaveRepository::save(GESaveRecord& record) const {
         return false;
     }
 
+    // Replace saves atomically.
     if (!MoveFileExW(
         temporary.c_str(),
         destination.c_str(),
